@@ -47,11 +47,17 @@ ai-agents-config-library/
 │   ├── AGENTS.repo-template.md    # Template for new repo root AGENTS.md
 │   └── skills/                    # Company-wide skills
 │       └── skill-creator/         # Skill for creating new skills
+├── backend/                       # Team-specific domain (Backend)
+│   ├── AGENTS.md                  # Backend services rules
+│   └── skills/                    # Backend-specific skills
 ├── infrastructure/                # Team-specific domain (Infra)
 │   ├── AGENTS.md                  # Terramate, Helm, ArgoCD rules
 │   └── skills/                    # Infra-specific skills
 │       └── commit/                # Conventional Commits skill
 ├── _generated/                    # Pre-built indexes per team (committed)
+│   ├── backend/
+│   │   ├── master-index.md        # Master config index for backend repos
+│   │   └── skills-index.md        # Skills catalog for backend repos
 │   └── infrastructure/
 │       ├── master-index.md        # Master config index for infra repos
 │       └── skills-index.md        # Skills catalog for infra repos
@@ -69,7 +75,7 @@ ai-agents-config-library/
 | Layer | Scope | What it contains |
 |---|---|---|
 | **Company** (`company/`) | All repositories | Baseline rules (security, PRs, YAML) and universal skills (e.g., `skill-creator`) |
-| **Team** (`infrastructure/`, …) | Repositories that opt in via `--group` | Domain-specific rules and skills (e.g., Conventional Commits for Infrastructure) |
+| **Team** (`backend/`, `infrastructure/`, …) | Repositories that opt in via `--group` | Domain-specific rules and skills (e.g., Conventional Commits for Infrastructure) |
 
 When you run `setup.sh`, both the company layer and your chosen team layer are symlinked into the target repo. The agent sees them as local files and loads them automatically. Updates to skills and rules in this library propagate through those symlinks — no re-running required.
 
@@ -210,6 +216,7 @@ Commit when done — the pre-commit hook regenerates `_generated/` automatically
 | Skill | Domain | Description |
 |---|---|---|
 | [`commit`](infrastructure/skills/commit/SKILL.md) | `infrastructure` | Analyzes changes and creates git commits following Conventional Commits 1.0.0 with Jira references and AI attribution. |
+| [`golang-api`](backend/skills/golang-api/SKILL.md) | `backend` | Enforces Go API best practices for project structure, handlers, error handling, middleware, and testing. |
 | [`skill-creator`](company/skills/skill-creator/SKILL.md) | `company` | Guides agents through creating a new skill following the agentskills.io standard. |
 
 ## Standards

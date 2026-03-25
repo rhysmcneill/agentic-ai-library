@@ -30,11 +30,17 @@ ai-agents-config-library/
 │   ├── AGENTS.repo-template.md    # Copy when onboarding a new repository
 │   └── skills/
 │       └── skill-creator/         # Use this skill to create any new skill
+├── backend/                       # Backend team domain
+│   ├── AGENTS.md                  # BACKEND-* rules
+│   └── skills/
 ├── infrastructure/                # Infra team domain (Terramate, Helm, ArgoCD)
 │   ├── AGENTS.md                  # INFRA-* rules
 │   └── skills/
 │       └── commit/                # Conventional Commits skill
 ├── _generated/                    # Pre-built indexes per team (committed)
+│   ├── backend/
+│   │   ├── master-index.md        # Master config index for backend repos
+│   │   └── skills-index.md        # Skills catalog for backend repos
 │   └── infrastructure/
 │       ├── master-index.md        # Master config index for infra repos
 │       └── skills-index.md        # Skills catalog for infra repos
@@ -49,6 +55,7 @@ ai-agents-config-library/
 
 ### Rule IDs
 - `GBL-NNN` — global company rules (`company/AGENTS.md`)
+- `BACKEND-NNN` — backend team rules (`backend/AGENTS.md`)
 - `INFRA-NNN` — infra team rules (`infrastructure/AGENTS.md`)
 - `REPO-NNN` — rules specific to this library repo
 

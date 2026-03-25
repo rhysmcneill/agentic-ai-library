@@ -15,6 +15,7 @@ Global [company] guide for any AI coding agent used in technical repositories.
 ## Available domains
 
 - `company/` (Global standards)
+- `backend/` (Team-specific: Backend services rules)
 - `infrastructure/` (Team-specific: Terramate, Helm, ArgoCD rules)
 
 ## Global rules
