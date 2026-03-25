@@ -1,6 +1,6 @@
-# agentic-ai-library
+# Agentic AI Skills Library
 
-A centralized library of **company-wide** and **team-based** AI agent rules and skills at [Company]. It provides consistent, layered instructions to AI agents (Antigravity/Gemini, Claude Code, Cursor, etc.) that can be applied to any repository.
+A centralized library of **company-wide** and **team-based** AI agent rules and skills. It provides consistent, layered instructions to AI agents (Antigravity/Gemini, Claude Code, Cursor, etc.) that can be applied to any repository. It acts as an orchestrator and skills are automatically propagated to all target repos through symlinks.
 
 > **Local-only by design.** Running `setup.sh` against a target repo installs rules and skills **locally on your machine** via symlinks. All managed files are automatically added to `.gitignore` — nothing is committed or pushed to version control in the target repo. Each developer runs the script once per repo; subsequent library updates propagate automatically through the symlinks.
 
