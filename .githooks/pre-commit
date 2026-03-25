@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Pre-commit hook: regenerate _generated/ indexes and stage them.
+# Ensures every commit that touches skills or teams includes up-to-date indexes.
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+"$REPO_ROOT/scripts/generate-indexes.sh"
+
+git add "$REPO_ROOT/_generated/"
