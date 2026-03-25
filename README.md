@@ -1,4 +1,4 @@
-# ai-agents-config-library
+# agentic-ai-library
 
 A centralized library of **company-wide** and **team-based** AI agent rules and skills at [Company]. It provides consistent, layered instructions to AI agents (Antigravity/Gemini, Claude Code, Cursor, etc.) that can be applied to any repository.
 
