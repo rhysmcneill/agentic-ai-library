@@ -32,7 +32,7 @@ To add a new team rule, use a team-prefixed ID:
 2. **Artifact generation:** All releases should create a release artifact (binary, docker image, helm chart etc) and upload to a secured repository (ECR, GHCR, DockerHub etc).
 
 <!-- rule: RELEASE-003 -->
-3. **Changelog required:** Every release must include a human-readable changelog entry or GitHub release notes. Generate entries from conventional commit messages or PR titles when available.
+3. **Changelog required:** Every release must include a human-readable changelog entry or GitHub release notes. Release notes should ideally be generated automatically based on commit messages, and created and updated via a CICD agent.
 
 <!-- rule: RELEASE-004 -->
 4. **Immutable releases:** Once a version is published, it must never be overwritten or re-tagged. If a fix is needed, bump the version.
