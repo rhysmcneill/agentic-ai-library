@@ -7,7 +7,7 @@ Global [company] guide for any AI coding agent used in technical repositories.
 ## How to use this library
 
 - Always load `company/AGENTS.md` as the shared baseline.
-- If a change touches a specific domain, also load `{domain}/AGENTS.md`.
+- If a change touches a specific domain, also load `teams/{domain}/AGENTS.md`.
 - Activate only the skills needed for the current task.
 - To override a rule from a higher-precedence file, reference its Rule ID explicitly:
   `<!-- override: GBL-001 -->` then state the replacement rule.
@@ -15,8 +15,9 @@ Global [company] guide for any AI coding agent used in technical repositories.
 ## Available domains
 
 - `company/` (Global standards)
-- `backend/` (Team-specific: Backend services rules)
-- `infrastructure/` (Team-specific: Terramate, Helm, ArgoCD rules)
+- `teams/backend/` (Team-specific: Backend services rules)
+- `teams/infrastructure/` (Team-specific: Terramate, Helm, ArgoCD rules)
+- `teams/release/` (Team-specific: Semver, artifacts, changelog rules)
 
 ## Global rules
 

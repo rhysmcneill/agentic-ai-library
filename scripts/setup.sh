@@ -63,8 +63,10 @@ fi
 
 TARGET_DIR="$(cd "$TARGET" && pwd)"
 
-if [[ ! -d "$LIBRARY_DIR/$TEAM" ]]; then
-    echo "Error: Team directory '$TEAM' does not exist in the library ($LIBRARY_DIR/$TEAM)."
+TEAMS_DIR="$LIBRARY_DIR/teams"
+
+if [[ ! -d "$TEAMS_DIR/$TEAM" ]]; then
+    echo "Error: Team directory '$TEAM' does not exist in the library ($TEAMS_DIR/$TEAM)."
     exit 1
 fi
 
@@ -92,7 +94,7 @@ echo "Linking rules..."
 REL_COMPANY_AGENTS=$(realpath --relative-to="$AGENTS_DIR/rules" "$LIBRARY_DIR/company/AGENTS.md")
 ln -sfn "$REL_COMPANY_AGENTS" "$AGENTS_DIR/rules/agents-company-link"
 
-REL_TEAM_AGENTS=$(realpath --relative-to="$AGENTS_DIR/rules" "$LIBRARY_DIR/$TEAM/AGENTS.md")
+REL_TEAM_AGENTS=$(realpath --relative-to="$AGENTS_DIR/rules" "$TEAMS_DIR/$TEAM/AGENTS.md")
 ln -sfn "$REL_TEAM_AGENTS" "$AGENTS_DIR/rules/agents-$TEAM-link"
 
 # 3. Symlink skills
@@ -101,8 +103,8 @@ if [[ -d "$LIBRARY_DIR/company/skills" ]]; then
     REL_COMPANY_SKILLS=$(realpath --relative-to="$AGENTS_DIR/skills" "$LIBRARY_DIR/company/skills")
     ln -sfn "$REL_COMPANY_SKILLS" "$AGENTS_DIR/skills/company-links"
 fi
-if [[ -d "$LIBRARY_DIR/$TEAM/skills" ]]; then
-    REL_TEAM_SKILLS=$(realpath --relative-to="$AGENTS_DIR/skills" "$LIBRARY_DIR/$TEAM/skills")
+if [[ -d "$TEAMS_DIR/$TEAM/skills" ]]; then
+    REL_TEAM_SKILLS=$(realpath --relative-to="$AGENTS_DIR/skills" "$TEAMS_DIR/$TEAM/skills")
     ln -sfn "$REL_TEAM_SKILLS" "$AGENTS_DIR/skills/$TEAM-links"
 fi
 

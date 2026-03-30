@@ -10,15 +10,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIBRARY_DIR="$(dirname "$SCRIPT_DIR")"
 GENERATED_DIR="$LIBRARY_DIR/_generated"
 
-SKIP_DIRS="company scripts _generated .git .github"
+TEAMS_DIR="$LIBRARY_DIR/teams"
 
 find_teams() {
-    for dir in "$LIBRARY_DIR"/*/; do
+    if [[ ! -d "$TEAMS_DIR" ]]; then
+        return
+    fi
+    for dir in "$TEAMS_DIR"/*/; do
         local name
         name=$(basename "$dir")
-        if echo "$SKIP_DIRS" | grep -qw "$name"; then
-            continue
-        fi
         if [[ -f "$dir/AGENTS.md" ]]; then
             echo "$name"
         fi
@@ -48,10 +48,10 @@ HEADER
         echo "" >> "$output"
     fi
 
-    if [[ -d "$LIBRARY_DIR/$team/skills" ]]; then
+    if [[ -d "$TEAMS_DIR/$team/skills" ]]; then
         echo "## Team ($team) Skills" >> "$output"
         echo "" >> "$output"
-        find "$LIBRARY_DIR/$team/skills" -maxdepth 2 -name "SKILL.md" | sort | while read -r skill_file; do
+        find "$TEAMS_DIR/$team/skills" -maxdepth 2 -name "SKILL.md" | sort | while read -r skill_file; do
             local skill_name
             skill_name=$(basename "$(dirname "$skill_file")")
             echo "- [$skill_name]($team-links/$skill_name/SKILL.md)" >> "$output"

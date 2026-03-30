@@ -47,13 +47,15 @@ ai-agents-config-library/
 │   ├── AGENTS.repo-template.md    # Template for new repo root AGENTS.md
 │   └── skills/                    # Company-wide skills
 │       └── skill-creator/         # Skill for creating new skills
-├── backend/                       # Team-specific domain (Backend)
-│   ├── AGENTS.md                  # Backend services rules
-│   └── skills/                    # Backend-specific skills
-├── infrastructure/                # Team-specific domain (Infra)
-│   ├── AGENTS.md                  # Terramate, Helm, ArgoCD rules
-│   └── skills/                    # Infra-specific skills
-│       └── commit/                # Conventional Commits skill
+├── teams/                         # All team domains live here
+│   ├── backend/                   # Team-specific domain (Backend)
+│   │   ├── AGENTS.md              # Backend services rules
+│   │   └── skills/                # Backend-specific skills
+│   │       └── golang-api/        # Go API patterns skill
+│   └── infrastructure/            # Team-specific domain (Infra)
+│       ├── AGENTS.md              # Terramate, Helm, ArgoCD rules
+│       └── skills/                # Infra-specific skills
+│           └── commit/            # Conventional Commits skill
 ├── _generated/                    # Pre-built indexes per team (committed)
 │   ├── backend/
 │   │   ├── master-index.md        # Master config index for backend repos
@@ -75,7 +77,7 @@ ai-agents-config-library/
 | Layer | Scope | What it contains |
 |---|---|---|
 | **Company** (`company/`) | All repositories | Baseline rules (security, PRs, YAML) and universal skills (e.g., `skill-creator`) |
-| **Team** (`backend/`, `infrastructure/`, …) | Repositories that opt in via `--group` | Domain-specific rules and skills (e.g., Conventional Commits for Infrastructure) |
+| **Team** (`teams/backend/`, `teams/infrastructure/`, …) | Repositories that opt in via `--group` | Domain-specific rules and skills (e.g., Conventional Commits for Infrastructure) |
 
 When you run `setup.sh`, both the company layer and your chosen team layer are symlinked into the target repo. The agent sees them as local files and loads them automatically. Updates to skills and rules in this library propagate through those symlinks — no re-running required.
 
@@ -87,7 +89,7 @@ Rules follow a **"Nearest First"** precedence. The agent loads files from lowest
 |---|---|---|---|
 | **1 (Highest)** | Local | `AGENTS.local.md` | Personal `SKILL.md` |
 | **2** | Repo | Root `/AGENTS.md` | `.agents/skills/*.md` |
-| **3** | Team | `library/[team]/AGENTS.md` | `library/[team]/skills/*.md` |
+| **3** | Team | `library/teams/[team]/AGENTS.md` | `library/teams/[team]/skills/*.md` |
 | **4 (Lowest)** | Company | `library/company/AGENTS.md` | `library/company/skills/*.md` |
 
 ### Overriding a Rule
@@ -127,11 +129,11 @@ my-repo/
     ├── AGENTS.md                       → symlink to _generated/{team}/master-index.md
     ├── rules/
     │   ├── agents-company-link         → symlink to library/company/AGENTS.md
-    │   └── agents-infrastructure-link  → symlink to library/infrastructure/AGENTS.md
+    │   └── agents-infrastructure-link  → symlink to library/teams/infrastructure/AGENTS.md
     └── skills/
         ├── AGENTS.md                   → symlink to _generated/{team}/skills-index.md
         ├── company-links/              → symlink to library/company/skills/
-        └── infrastructure-links/       → symlink to library/infrastructure/skills/
+        └── infrastructure-links/       → symlink to library/teams/infrastructure/skills/
 ```
 
 After setup, customise your repo-level rules at the bottom of the root `AGENTS.md`.
@@ -195,9 +197,9 @@ Regardless of the IDE or agent you use, you should provide these instructions (a
 
 ## Adding a New Team Domain
 
-1. Create a new directory: `mkdir -p [team]/skills`
-2. Copy the team template: `cp company/AGENTS.team-template.md [team]/AGENTS.md`
-3. Edit `[team]/AGENTS.md` — replace the `[TEAM]-` prefix with your team name (e.g., `QA-`, `FRONTEND-`).
+1. Create a new directory: `mkdir -p teams/[team]/skills`
+2. Copy the team template: `cp company/AGENTS.team-template.md teams/[team]/AGENTS.md`
+3. Edit `teams/[team]/AGENTS.md` — replace the `[TEAM]-` prefix with your team name (e.g., `QA-`, `FRONTEND-`).
 4. Update `company/AGENTS.md` to list the new domain under **Available domains**.
 5. Commit — the pre-commit hook regenerates `_generated/` automatically.
 
@@ -215,8 +217,8 @@ Commit when done — the pre-commit hook regenerates `_generated/` automatically
 
 | Skill | Domain | Description |
 |---|---|---|
-| [`commit`](infrastructure/skills/commit/SKILL.md) | `infrastructure` | Analyzes changes and creates git commits following Conventional Commits 1.0.0 with Jira references and AI attribution. |
-| [`golang-api`](backend/skills/golang-api/SKILL.md) | `backend` | Enforces Go API best practices for project structure, handlers, error handling, middleware, and testing. |
+| [`commit`](teams/infrastructure/skills/commit/SKILL.md) | `infrastructure` | Analyzes changes and creates git commits following Conventional Commits 1.0.0 with Jira references and AI attribution. |
+| [`golang-api`](teams/backend/skills/golang-api/SKILL.md) | `backend` | Enforces Go API best practices for project structure, handlers, error handling, middleware, and testing. |
 | [`skill-creator`](company/skills/skill-creator/SKILL.md) | `company` | Guides agents through creating a new skill following the agentskills.io standard. |
 
 ## Standards

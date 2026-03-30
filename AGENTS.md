@@ -30,13 +30,17 @@ ai-agents-config-library/
 │   ├── AGENTS.repo-template.md    # Copy when onboarding a new repository
 │   └── skills/
 │       └── skill-creator/         # Use this skill to create any new skill
-├── backend/                       # Backend team domain
-│   ├── AGENTS.md                  # BACKEND-* rules
-│   └── skills/
-├── infrastructure/                # Infra team domain (Terramate, Helm, ArgoCD)
-│   ├── AGENTS.md                  # INFRA-* rules
-│   └── skills/
-│       └── commit/                # Conventional Commits skill
+├── teams/                         # All team domains live here
+│   ├── backend/                   # Backend team domain
+│   │   ├── AGENTS.md              # BACKEND-* rules
+│   │   └── skills/
+│   │       └── golang-api/        # Go API patterns skill
+│   ├── infrastructure/            # Infra team domain (Terramate, Helm, ArgoCD)
+│   │   ├── AGENTS.md              # INFRA-* rules
+│   │   └── skills/
+│   │       └── commit/            # Conventional Commits skill
+│   └── release/                   # Release team domain (semver, artifacts, changelog)
+│       └── AGENTS.md              # RELEASE-* rules
 ├── _generated/                    # Pre-built indexes per team (committed)
 │   ├── backend/
 │   │   ├── master-index.md        # Master config index for backend repos
@@ -55,12 +59,13 @@ ai-agents-config-library/
 
 ### Rule IDs
 - `GBL-NNN` — global company rules (`company/AGENTS.md`)
-- `BACKEND-NNN` — backend team rules (`backend/AGENTS.md`)
-- `INFRA-NNN` — infra team rules (`infrastructure/AGENTS.md`)
+- `BACKEND-NNN` — backend team rules (`teams/backend/AGENTS.md`)
+- `INFRA-NNN` — infra team rules (`teams/infrastructure/AGENTS.md`)
+- `RELEASE-NNN` — release team rules (`teams/release/AGENTS.md`)
 - `REPO-NNN` — rules specific to this library repo
 
 ### Skill Locations
-Skills live under `{domain}/skills/{skill-name}/SKILL.md`. The `company/skills/` directory holds skills available to all domains; team-specific skills live under their respective domain directory.
+Skills live under `teams/{team}/skills/{skill-name}/SKILL.md`. The `company/skills/` directory holds skills available to all domains; team-specific skills live under their respective team directory.
 
 ### Creating a New Skill
 Always use the `skill-creator` skill. Trigger it with:
