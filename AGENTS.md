@@ -39,6 +39,13 @@ ai-agents-config-library/
 │   │   ├── AGENTS.md              # INFRA-* rules
 │   │   └── skills/
 │   │       └── commit/            # Conventional Commits skill
+│   ├── oss/                       # OSS contribution domain
+│   │   ├── AGENTS.md              # OSS-* rules
+│   │   └── skills/
+│   │       ├── create-issue/      # Create issues following repo guidelines
+│   │       ├── create-pr/         # Submit pull requests to OSS repos
+│   │       ├── repo-onboard/      # Onboard onto a new OSS repository
+│   │       └── repo-research/     # Research repos for contribution opportunities
 │   └── release/                   # Release team domain (semver, artifacts, changelog)
 │       └── AGENTS.md              # RELEASE-* rules
 ├── _generated/                    # Pre-built indexes per team (committed)
@@ -61,6 +68,7 @@ ai-agents-config-library/
 - `GBL-NNN` — global company rules (`company/AGENTS.md`)
 - `BACKEND-NNN` — backend team rules (`teams/backend/AGENTS.md`)
 - `INFRA-NNN` — infra team rules (`teams/infrastructure/AGENTS.md`)
+- `OSS-NNN` — OSS contribution rules (`teams/oss/AGENTS.md`)
 - `RELEASE-NNN` — release team rules (`teams/release/AGENTS.md`)
 - `REPO-NNN` — rules specific to this library repo
 

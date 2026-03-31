@@ -17,6 +17,7 @@ Global [company] guide for any AI coding agent used in technical repositories.
 - `company/` (Global standards)
 - `teams/backend/` (Team-specific: Backend services rules)
 - `teams/infrastructure/` (Team-specific: Terramate, Helm, ArgoCD rules)
+- `teams/oss/` (Team-specific: Open-source contribution rules)
 - `teams/release/` (Team-specific: Semver, artifacts, changelog rules)
 
 ## Global rules

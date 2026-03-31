@@ -52,10 +52,19 @@ ai-agents-config-library/
 │   │   ├── AGENTS.md              # Backend services rules
 │   │   └── skills/                # Backend-specific skills
 │   │       └── golang-api/        # Go API patterns skill
-│   └── infrastructure/            # Team-specific domain (Infra)
-│       ├── AGENTS.md              # Terramate, Helm, ArgoCD rules
-│       └── skills/                # Infra-specific skills
-│           └── commit/            # Conventional Commits skill
+│   ├── infrastructure/            # Team-specific domain (Infra)
+│   │   ├── AGENTS.md              # Terramate, Helm, ArgoCD rules
+│   │   └── skills/                # Infra-specific skills
+│   │       └── commit/            # Conventional Commits skill
+│   ├── oss/                       # Team-specific domain (OSS contributions)
+│   │   ├── AGENTS.md              # OSS contribution rules
+│   │   └── skills/                # OSS-specific skills
+│   │       ├── create-issue/      # Create issues following repo guidelines
+│   │       ├── create-pr/         # Submit pull requests to OSS repos
+│   │       ├── repo-onboard/      # Onboard onto a new OSS repository
+│   │       └── repo-research/     # Research repos for contribution opportunities
+│   └── release/                   # Team-specific domain (Release)
+│       └── AGENTS.md              # Semver, artifacts, changelog rules
 ├── _generated/                    # Pre-built indexes per team (committed)
 │   ├── backend/
 │   │   ├── master-index.md        # Master config index for backend repos
@@ -218,7 +227,11 @@ Commit when done — the pre-commit hook regenerates `_generated/` automatically
 | Skill | Domain | Description |
 |---|---|---|
 | [`commit`](teams/infrastructure/skills/commit/SKILL.md) | `infrastructure` | Analyzes changes and creates git commits following Conventional Commits 1.0.0 with Jira references and AI attribution. |
+| [`create-issue`](teams/oss/skills/create-issue/SKILL.md) | `oss` | Creates well-structured issues in OSS repositories following the project's templates and guidelines. |
+| [`create-pr`](teams/oss/skills/create-pr/SKILL.md) | `oss` | Submits pull requests to OSS repositories following contribution guidelines, PR templates, and CI requirements. |
 | [`golang-api`](teams/backend/skills/golang-api/SKILL.md) | `backend` | Enforces Go API best practices for project structure, handlers, error handling, middleware, and testing. |
+| [`repo-onboard`](teams/oss/skills/repo-onboard/SKILL.md) | `oss` | Onboards onto a new OSS repository by reading documentation, understanding structure, and summarising how to contribute. |
+| [`repo-research`](teams/oss/skills/repo-research/SKILL.md) | `oss` | Researches a repository to find potential improvements, enhancements, bug fixes, and feature opportunities. |
 | [`skill-creator`](company/skills/skill-creator/SKILL.md) | `company` | Guides agents through creating a new skill following the agentskills.io standard. |
 
 ## Standards
