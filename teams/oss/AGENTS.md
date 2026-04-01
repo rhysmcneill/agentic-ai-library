@@ -42,3 +42,12 @@ To add a new team rule, use a team-prefixed ID:
 
 <!-- rule: OSS-006 -->
 6. **Respect licensing:** Verify the project's license before contributing. Ensure any code, dependencies, or assets you introduce are compatible with that license.
+
+<!-- rule: OSS-007 -->
+7. **Python venv must be active before any Python work:** Before running any `python`, `pip`, `pytest`, `ruff`, `mypy`, or other Python command, verify the virtualenv is active (`echo $VIRTUAL_ENV`). If it is not active, activate it with `source .venv/bin/activate`. Never install packages or run tests outside the venv. The venv must remain active for the entire working session — do not deactivate between steps.
+
+<!-- rule: OSS-008 -->
+8. **Deactivate the venv only on explicit user request:** Do not call `deactivate` unless the user explicitly asks (e.g., "deactivate the venv", "I'm done", "clean up the environment"). When deactivating, confirm to the user that the venv has been deactivated and remind them to re-activate before resuming Python work.
+
+<!-- rule: OSS-009 -->
+9. **Use project-local tool directories for non-Python ecosystems:** Go binaries should be installed to `./bin/` and added to `$PATH` for the session only (`export PATH="$PWD/bin:$PATH"`). Terraform providers are initialised in `.terraform/` via `terraform init`. Node packages are installed locally via the project's lockfile-detected package manager (`npm`, `yarn`, or `pnpm`). Never install project tools globally (`-g`, `/usr/local/bin`) without explicit user permission.
