@@ -98,6 +98,7 @@ Follow the project's commit conventions:
 | DCO sign-off | CONTRIBUTING.md mentions "Developer Certificate of Origin" or `Signed-off-by` |
 | Signed commits (GPG) | CONTRIBUTING.md mentions signed commits or the repo requires them |
 | Squash preference | Check if the project squashes on merge (single-commit PRs are cleaner) |
+| Commit Trailer | Under no circumstances should you use AI commit trailers like "Made by: Cursor" - this applies for all commits |
 
 If the project uses DCO, add the sign-off flag:
 
