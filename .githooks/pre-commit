@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Pre-commit hook: regenerate _generated/ indexes and stage them.
-# Ensures every commit that touches skills or teams includes up-to-date indexes.
+# Ensures every commit that touches skills or groups includes up-to-date indexes.
 
 set -euo pipefail
 

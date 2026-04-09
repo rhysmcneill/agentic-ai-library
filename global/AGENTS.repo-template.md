@@ -2,8 +2,8 @@
 
 ## Context
 
-Repo-specific rules for AI coding agents. Loaded after `company/AGENTS.md` and
-`{team}/AGENTS.md`. Rules here extend or override the team and global baselines.
+Repo-specific rules for AI coding agents. Loaded after `global/AGENTS.md` and
+`{group}/AGENTS.md`. Rules here extend or override the group and global baselines.
 
 To override a rule from a parent scope, reference its Rule ID explicitly:
 

@@ -2,8 +2,8 @@
 
 ## Context
 
-Infrastructure domain rules for AI coding agents at IriusRisk. Loaded after `company/AGENTS.md`.
-Rules here extend or override the global baseline for this team's repositories.
+Infrastructure domain rules for AI coding agents. Loaded after `global/AGENTS.md`.
+Rules here extend or override the global baseline for repositories that select this group.
 
 To override a global rule, reference its Rule ID explicitly:
 
@@ -12,18 +12,18 @@ To override a global rule, reference its Rule ID explicitly:
 1. <Your replacement rule here>
 ```
 
-To add a new team rule, use a team-prefixed ID:
+To add a new group rule, use a group-prefixed ID:
 
 ```
 <!-- rule: INFRA-001 -->
 1. <Your new rule here>
 ```
 
-## Team-specific Overrides
+## Group-specific Overrides
 
 <!-- No overrides yet. Add entries here using the override comment syntax above. -->
 
-## Team-specific Rules
+## Group-specific Rules
 
 <!-- rule: INFRA-001 -->
 1. **Terramate First:** Always check for Terramate code generation (`terramate generate`) when working with Terraform files. Do not manually edit generated files.

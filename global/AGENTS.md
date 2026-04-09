@@ -2,23 +2,23 @@
 
 ## Context
 
-Global [company] guide for any AI coding agent used in technical repositories.
+Global baseline guide for any AI coding agent. This file applies to all repositories linked to the library.
 
 ## How to use this library
 
-- Always load `company/AGENTS.md` as the shared baseline.
-- If a change touches a specific domain, also load `teams/{domain}/AGENTS.md`.
+- Always load `global/AGENTS.md` as the shared baseline.
+- If a change touches a specific domain, also load `groups/{domain}/AGENTS.md`.
+- A repository can use **multiple groups** simultaneously (e.g., `--group backend --group golang`).
 - Activate only the skills needed for the current task.
 - To override a rule from a higher-precedence file, reference its Rule ID explicitly:
   `<!-- override: GBL-001 -->` then state the replacement rule.
 
-## Available domains
+## Available groups
 
-- `company/` (Global standards)
-- `teams/backend/` (Team-specific: Backend services rules)
-- `teams/infrastructure/` (Team-specific: Terramate, Helm, ArgoCD rules)
-- `teams/oss/` (Team-specific: Open-source contribution rules)
-- `teams/release/` (Team-specific: Semver, artifacts, changelog rules)
+- `groups/backend/` (Backend services rules)
+- `groups/infrastructure/` (Terramate, Helm, ArgoCD rules)
+- `groups/open-source-contrib/` (Open-source contribution rules)
+- `groups/release/` (Semver, artifacts, changelog rules)
 
 ## Global rules
 

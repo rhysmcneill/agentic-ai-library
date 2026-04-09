@@ -2,30 +2,59 @@
 # script: setup.sh
 # description: Set up AI agent configuration in a target repository.
 #              Creates local symlinks only — never commits or pushes.
+#              Supports multiple groups per repo (e.g., --group backend --group infra).
 #              Run once per repo. Updates propagate automatically via symlinks
 #              when the library is pulled.
 
 set -euo pipefail
 
+# Colors (disabled if stdout is not a terminal)
+if [[ -t 1 ]]; then
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[0;33m'
+    CYAN='\033[0;36m'
+    BOLD='\033[1m'
+    DIM='\033[2m'
+    RESET='\033[0m'
+    CHECK="${GREEN}✔${RESET}"
+    CROSS="${RED}✘${RESET}"
+    ARROW="${CYAN}→${RESET}"
+else
+    RED='' GREEN='' YELLOW='' CYAN='' BOLD='' DIM='' RESET=''
+    CHECK='✔' CROSS='✘' ARROW='→'
+fi
+
+info()  { echo -e "  ${DIM}$1${RESET}"; }
+step()  { echo -e "  ${CHECK}  $1"; }
+err()   { echo -e "  ${CROSS}  ${RED}$1${RESET}" >&2; }
+
 usage() {
     cat << EOF
-Usage: $0 [OPTIONS]
+${BOLD}Usage:${RESET} $0 [OPTIONS]
 
 Set up AI agent configuration in a target repository. Supports Cursor, Claude Code, Codex, and Antigravity.
 
-Options:
-  -t, --target <path>  Target repository path (required)
-  -g, --group <name>   Team/group name in the config library (e.g., infrastructure, backend) (required)
-  -h, --help           Show this help message
+${BOLD}Options:${RESET}
+  -t, --target <path>   Target repository path (required)
+  -g, --group <name>    Group name in the config library (repeatable, at least one required)
+  -h, --help            Show this help message
 
-Example:
+${BOLD}Examples:${RESET}
+  # Single group
   $0 --target ../my-repo --group infrastructure
+
+  # Multiple groups (monorepo with backend + infra)
+  $0 --target ../my-monorepo --group backend --group infrastructure
+
+  # Multiple groups (frontend project using shared language rules)
+  $0 --target ../web-app --group frontend --group typescript
 EOF
     exit 1
 }
 
 TARGET=""
-TEAM=""
+SELECTED_GROUPS=()
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -34,21 +63,22 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         -g|--group)
-            TEAM="$2"
+            SELECTED_GROUPS+=("$2")
             shift 2
             ;;
         -h|--help)
             usage
             ;;
         *)
-            echo "Unknown option: $1"
+            err "Unknown option: $1"
+            echo ""
             usage
             ;;
     esac
 done
 
-if [[ -z "$TARGET" || -z "$TEAM" ]]; then
-    echo "Error: Both --target and --group are required."
+if [[ -z "$TARGET" || ${#SELECTED_GROUPS[@]} -eq 0 ]]; then
+    err "--target and at least one --group are required."
     echo ""
     usage
 fi
@@ -57,66 +87,130 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIBRARY_DIR="$(dirname "$SCRIPT_DIR")"
 
 if [[ ! -d "$TARGET" ]]; then
-    echo "Error: Target directory '$TARGET' does not exist."
+    err "Target directory '$TARGET' does not exist."
     exit 1
 fi
 
 TARGET_DIR="$(cd "$TARGET" && pwd)"
 
-TEAMS_DIR="$LIBRARY_DIR/teams"
+GROUPS_DIR="$LIBRARY_DIR/groups"
 
-if [[ ! -d "$TEAMS_DIR/$TEAM" ]]; then
-    echo "Error: Team directory '$TEAM' does not exist in the library ($TEAMS_DIR/$TEAM)."
-    exit 1
-fi
-
-if [[ ! -d "$LIBRARY_DIR/_generated/$TEAM" ]]; then
-    echo "Error: Pre-built indexes not found for '$TEAM'."
-    echo "Run 'scripts/generate-indexes.sh' in the library first."
-    exit 1
-fi
+for GROUP in "${SELECTED_GROUPS[@]}"; do
+    if [[ ! -d "$GROUPS_DIR/$GROUP" ]]; then
+        err "Group '$GROUP' does not exist in the library ($GROUPS_DIR/$GROUP)."
+        exit 1
+    fi
+done
 
 AGENTS_DIR="$TARGET_DIR/.agents"
 
-echo "Setting up AI agent configuration for: $TARGET_DIR"
-echo "Team: $TEAM"
+echo ""
+echo -e "${BOLD}Setting up AI agent configuration${RESET}"
+echo -e "  Target:  ${CYAN}$TARGET_DIR${RESET}"
+echo -e "  Groups:  ${CYAN}${SELECTED_GROUPS[*]}${RESET}"
 echo ""
 
 # 1. Create directory structure
-echo "Creating directory structure..."
 mkdir -p "$AGENTS_DIR/rules"
 mkdir -p "$AGENTS_DIR/skills"
 
-rm -rf "$AGENTS_DIR/company" "$AGENTS_DIR/$TEAM"
+for GROUP in "${SELECTED_GROUPS[@]}"; do
+    rm -rf "$AGENTS_DIR/$GROUP"
+done
+step "Created directory structure"
 
-# 2. Symlink rules
-echo "Linking rules..."
-REL_COMPANY_AGENTS=$(realpath --relative-to="$AGENTS_DIR/rules" "$LIBRARY_DIR/company/AGENTS.md")
-ln -sfn "$REL_COMPANY_AGENTS" "$AGENTS_DIR/rules/agents-company-link"
+# 2. Symlink global rules
+REL_GLOBAL_AGENTS=$(realpath --relative-to="$AGENTS_DIR/rules" "$LIBRARY_DIR/global/AGENTS.md")
+ln -sfn "$REL_GLOBAL_AGENTS" "$AGENTS_DIR/rules/agents-global-link"
+step "Linked global rules"
 
-REL_TEAM_AGENTS=$(realpath --relative-to="$AGENTS_DIR/rules" "$TEAMS_DIR/$TEAM/AGENTS.md")
-ln -sfn "$REL_TEAM_AGENTS" "$AGENTS_DIR/rules/agents-$TEAM-link"
+# 3. Symlink group rules
+for GROUP in "${SELECTED_GROUPS[@]}"; do
+    REL_GROUP_AGENTS=$(realpath --relative-to="$AGENTS_DIR/rules" "$GROUPS_DIR/$GROUP/AGENTS.md")
+    ln -sfn "$REL_GROUP_AGENTS" "$AGENTS_DIR/rules/agents-$GROUP-link"
+done
+step "Linked group rules  ${DIM}(${SELECTED_GROUPS[*]})${RESET}"
 
-# 3. Symlink skills
-echo "Linking skills..."
-if [[ -d "$LIBRARY_DIR/company/skills" ]]; then
-    REL_COMPANY_SKILLS=$(realpath --relative-to="$AGENTS_DIR/skills" "$LIBRARY_DIR/company/skills")
-    ln -sfn "$REL_COMPANY_SKILLS" "$AGENTS_DIR/skills/company-links"
+# 4. Symlink global skills
+if [[ -d "$LIBRARY_DIR/global/skills" ]]; then
+    REL_GLOBAL_SKILLS=$(realpath --relative-to="$AGENTS_DIR/skills" "$LIBRARY_DIR/global/skills")
+    ln -sfn "$REL_GLOBAL_SKILLS" "$AGENTS_DIR/skills/global-links"
 fi
-if [[ -d "$TEAMS_DIR/$TEAM/skills" ]]; then
-    REL_TEAM_SKILLS=$(realpath --relative-to="$AGENTS_DIR/skills" "$TEAMS_DIR/$TEAM/skills")
-    ln -sfn "$REL_TEAM_SKILLS" "$AGENTS_DIR/skills/$TEAM-links"
+
+# 5. Symlink group skills
+SKILL_GROUPS=()
+for GROUP in "${SELECTED_GROUPS[@]}"; do
+    if [[ -d "$GROUPS_DIR/$GROUP/skills" ]]; then
+        REL_GROUP_SKILLS=$(realpath --relative-to="$AGENTS_DIR/skills" "$GROUPS_DIR/$GROUP/skills")
+        ln -sfn "$REL_GROUP_SKILLS" "$AGENTS_DIR/skills/$GROUP-links"
+        SKILL_GROUPS+=("$GROUP")
+    fi
+done
+step "Linked skills        ${DIM}(global${SKILL_GROUPS[*]:+, ${SKILL_GROUPS[*]}})${RESET}"
+
+# 6. Generate composite master index (supports multiple groups)
+MASTER_INDEX="$AGENTS_DIR/AGENTS.md"
+rm -f "$MASTER_INDEX"
+cat << 'HEADER' > "$MASTER_INDEX"
+## AUTO-GENERATED FILE - DO NOT EDIT MANUALLY ##
+# AI Agent Master Configuration Index
+
+Auto-generated by `setup.sh`. Do not edit manually.
+
+## Shared Rules
+HEADER
+
+echo "@.agents/rules/agents-global-link" >> "$MASTER_INDEX"
+echo "" >> "$MASTER_INDEX"
+for GROUP in "${SELECTED_GROUPS[@]}"; do
+    echo "@.agents/rules/agents-$GROUP-link" >> "$MASTER_INDEX"
+done
+echo "" >> "$MASTER_INDEX"
+echo "- [Global Rules](rules/agents-global-link)" >> "$MASTER_INDEX"
+for GROUP in "${SELECTED_GROUPS[@]}"; do
+    echo "- [Group Rules ($GROUP)](rules/agents-$GROUP-link)" >> "$MASTER_INDEX"
+done
+echo "" >> "$MASTER_INDEX"
+echo "## Available Skills" >> "$MASTER_INDEX"
+echo "@.agents/skills/AGENTS.md" >> "$MASTER_INDEX"
+echo "- [Skills Catalog](skills/AGENTS.md)" >> "$MASTER_INDEX"
+
+# 7. Generate composite skills index
+SKILLS_INDEX="$AGENTS_DIR/skills/AGENTS.md"
+rm -f "$SKILLS_INDEX"
+cat << 'HEADER' > "$SKILLS_INDEX"
+# Available Skills
+
+Auto-generated by `setup.sh`. Do not edit manually.
+
+HEADER
+
+if [[ -d "$LIBRARY_DIR/global/skills" ]]; then
+    echo "## Global Skills" >> "$SKILLS_INDEX"
+    echo "" >> "$SKILLS_INDEX"
+    find "$LIBRARY_DIR/global/skills" -maxdepth 2 -name "SKILL.md" | sort | while read -r skill_file; do
+        skill_name=$(basename "$(dirname "$skill_file")")
+        echo "- [$skill_name](global-links/$skill_name/SKILL.md)" >> "$SKILLS_INDEX"
+        echo "@.agents/skills/global-links/$skill_name/SKILL.md" >> "$SKILLS_INDEX"
+    done
+    echo "" >> "$SKILLS_INDEX"
 fi
 
-# 4. Symlink pre-built indexes (generated in the library by generate-indexes.sh)
-echo "Linking indexes..."
-REL_MASTER_INDEX=$(realpath --relative-to="$AGENTS_DIR" "$LIBRARY_DIR/_generated/$TEAM/master-index.md")
-ln -sfn "$REL_MASTER_INDEX" "$AGENTS_DIR/AGENTS.md"
+for GROUP in "${SELECTED_GROUPS[@]}"; do
+    if [[ -d "$GROUPS_DIR/$GROUP/skills" ]]; then
+        echo "## Group ($GROUP) Skills" >> "$SKILLS_INDEX"
+        echo "" >> "$SKILLS_INDEX"
+        find "$GROUPS_DIR/$GROUP/skills" -maxdepth 2 -name "SKILL.md" | sort | while read -r skill_file; do
+            skill_name=$(basename "$(dirname "$skill_file")")
+            echo "- [$skill_name]($GROUP-links/$skill_name/SKILL.md)" >> "$SKILLS_INDEX"
+            echo "@.agents/skills/$GROUP-links/$skill_name/SKILL.md" >> "$SKILLS_INDEX"
+        done
+        echo "" >> "$SKILLS_INDEX"
+    fi
+done
+step "Generated composite indexes"
 
-REL_SKILLS_INDEX=$(realpath --relative-to="$AGENTS_DIR/skills" "$LIBRARY_DIR/_generated/$TEAM/skills-index.md")
-ln -sfn "$REL_SKILLS_INDEX" "$AGENTS_DIR/skills/AGENTS.md"
-
-# 5. Manage root AGENTS.md
+# 8. Manage root AGENTS.md
 ROOT_AGENTS="$TARGET_DIR/AGENTS.md"
 MANAGED_START="<!-- AGENTS_MANAGED_START -->"
 MANAGED_END="<!-- AGENTS_MANAGED_END -->"
@@ -135,15 +229,14 @@ EOF
 )
 
 if [[ ! -f "$ROOT_AGENTS" ]]; then
-    echo "Creating root AGENTS.md..."
     echo "# Project Agent Rules" > "$ROOT_AGENTS"
     echo "" >> "$ROOT_AGENTS"
     echo "$MANAGED_CONTENT" >> "$ROOT_AGENTS"
     echo "" >> "$ROOT_AGENTS"
     echo "## Project-specific Rules" >> "$ROOT_AGENTS"
     echo "Add your repository-level rules here." >> "$ROOT_AGENTS"
+    step "Created root AGENTS.md"
 else
-    echo "Updating root AGENTS.md..."
     if grep -q "$MANAGED_START" "$ROOT_AGENTS"; then
         sed -i "/$MANAGED_START/,/$MANAGED_END/d" "$ROOT_AGENTS"
         echo "$MANAGED_CONTENT" >> "$ROOT_AGENTS"
@@ -151,11 +244,11 @@ else
         echo "" >> "$ROOT_AGENTS"
         echo "$MANAGED_CONTENT" >> "$ROOT_AGENTS"
     fi
+    step "Updated root AGENTS.md"
 fi
 
-# 6. Update .gitignore
+# 9. Update .gitignore
 GITIGNORE="$TARGET_DIR/.gitignore"
-echo "Updating .gitignore..."
 
 add_to_gitignore() {
     local pattern="$1"
@@ -166,12 +259,16 @@ add_to_gitignore() {
     fi
 }
 
-add_to_gitignore "# AI Agent Configuration (managed by ai-agents-config-library)"
+add_to_gitignore "# AI Agent Configuration (managed by agentic-ai-library)"
 add_to_gitignore ".agents/"
 add_to_gitignore "AGENTS.local.md"
+step "Updated .gitignore"
 
+# Done
 echo ""
-echo "Done! Configuration established in $TARGET_DIR"
+echo -e "${GREEN}${BOLD}  Setup complete!${RESET}"
 echo ""
-echo "Symlinks point back to the library. Future library updates"
-echo "(git pull) propagate automatically — no need to re-run this script."
+echo -e "  ${ARROW} Rules and skills are symlinked to the library."
+echo -e "  ${ARROW} Run ${CYAN}git pull${RESET} in the library to propagate updates."
+echo -e "  ${ARROW} Re-run this script only to add or remove groups."
+echo ""

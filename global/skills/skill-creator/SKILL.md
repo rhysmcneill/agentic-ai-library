@@ -12,7 +12,7 @@ Gather requirements before writing anything.
 1. What should this skill do? (one sentence)
 2. When should an agent use it? (trigger phrases users would say)
 3. What tools does the skill need? (Bash, file system tools, etc.)
-4. Where should the skill live? (which domain directory, e.g., `<team>/skills/`)
+4. Where should the skill live? (which group directory, e.g., `groups/<group>/skills/`)
 
 **Determine the skill name:**
 - Lowercase letters, digits, and hyphens only (`a-z`, `0-9`, `-`)

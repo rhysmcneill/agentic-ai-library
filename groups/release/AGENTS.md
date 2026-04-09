@@ -2,8 +2,8 @@
 
 ## Context
 
-Release domain rules for AI coding agents. Loaded after `company/AGENTS.md`.
-Rules here extend or override the global baseline for this team's repositories.
+Release domain rules for AI coding agents. Loaded after `global/AGENTS.md`.
+Rules here extend or override the global baseline for repositories that select this group.
 
 To override a global rule, reference its Rule ID explicitly:
 
@@ -12,18 +12,18 @@ To override a global rule, reference its Rule ID explicitly:
 1. <Your replacement rule here>
 ```
 
-To add a new team rule, use a team-prefixed ID:
+To add a new group rule, use a group-prefixed ID:
 
 ```
 <!-- rule: RELEASE-001 -->
 1. <Your new rule here>
 ```
 
-## Team-specific Overrides
+## Group-specific Overrides
 
 <!-- No overrides yet. Add entries here using the override comment syntax above. -->
 
-## Team-specific Rules
+## Group-specific Rules
 
 <!-- rule: RELEASE-001 -->
 1. **All services, tools and integrations should follow semver:** Never allow any service, tool or integration to be released without complying to semver for their artifacts.
