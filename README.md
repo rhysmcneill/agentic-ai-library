@@ -63,11 +63,14 @@ git clone <your-fork-url>
 # 2. Connect a target repo to the library (once per repo)
 scripts/setup.sh --target ../my-repo --group infrastructure
 
-# 3. Or connect with multiple groups (monorepos, multi-domain repos)
+# 3. Add IDE-specific integrations (optional, repeatable)
+scripts/setup.sh --target ../my-repo --group infrastructure --ide cursor --ide claude
+
+# 4. Or connect with multiple groups (monorepos, multi-domain repos)
 scripts/setup.sh --target ../my-monorepo --group backend --group infrastructure
 ```
 
-That's it. Your repo now has access to all global and selected group skills and rules. Open your IDE, and the AI agent will pick them up automatically. When someone adds new skills to the library, just `git pull` here — your repos update through the symlinks.
+That's it. Your repo now has access to all global and selected group skills and rules. Tools that read `AGENTS.md` natively (Codex, Antigravity, Copilot) work out of the box. For tools that need their own config files (Cursor, Claude Code, Windsurf), use `--ide` to generate them. When someone adds new skills to the library, just `git pull` here — your repos update through the symlinks.
 
 ### Creating a new skill
 
@@ -204,6 +207,9 @@ scripts/setup.sh --target ../my-repo --group infrastructure
 
 # Multiple groups
 scripts/setup.sh --target ../my-monorepo --group backend --group infrastructure --group release
+
+# With IDE integrations
+scripts/setup.sh --target ../my-repo --group infrastructure --ide cursor --ide claude
 ```
 
 What the script does:
@@ -213,6 +219,7 @@ What the script does:
 3.  **Generates composite indexes** (master index + skills catalog covering all selected groups).
 4.  **Updates the root `AGENTS.md`** to point to the master index, keeping the root clean.
 5.  **Adds `.agents/` to `.gitignore`** so nothing leaks into version control.
+6.  **IDE integrations** (when `--ide` is specified) — generates tool-specific config files.
 
 Because rules and skills are symlinked back to this library, updates you pull here propagate to all your target repos automatically. **You never need to re-run `setup.sh`** after the initial setup (unless you want to add or remove groups).
 
@@ -220,19 +227,25 @@ Because rules and skills are symlinked back to this library, updates you pull he
 
 ```text
 my-repo/
-├── AGENTS.md                          ← Root entry point
+├── AGENTS.md                          ← Root entry point (works for Codex, Antigravity, Copilot)
+├── CLAUDE.md                          ← (--ide claude) imports AGENTS.md for Claude Code CLI
+├── .windsurfrules                     ← (--ide windsurf) symlink to AGENTS.md
+├── .cursor/
+│   └── skills/                        ← (--ide cursor) skill symlinks for Cursor discovery
+│       ├── global-links/              → symlink to library/global/skills/
+│       └── infrastructure-links/      → symlink to library/groups/infrastructure/skills/
 └── .agents/                           ← Entire directory is gitignored
     ├── AGENTS.md                      ← Generated composite master index
     ├── rules/
     │   ├── agents-global-link         → symlink to library/global/AGENTS.md
-    │   ├── agents-backend-link        → symlink to library/groups/backend/AGENTS.md
     │   └── agents-infrastructure-link → symlink to library/groups/infrastructure/AGENTS.md
     └── skills/
         ├── AGENTS.md                  ← Generated composite skills catalog
         ├── global-links/              → symlink to library/global/skills/
-        ├── backend-links/             → symlink to library/groups/backend/skills/
         └── infrastructure-links/      → symlink to library/groups/infrastructure/skills/
 ```
+
+Files marked with `(--ide ...)` are only created when the corresponding flag is passed.
 
 After setup, customise your repo-level rules at the bottom of the root `AGENTS.md`.
 
@@ -258,50 +271,50 @@ If you need to regenerate indexes outside of a commit (e.g., to inspect the outp
 scripts/generate-indexes.sh
 ```
 
-## IDE Configuration
+## IDE and Tool Compatibility
 
-Some IDEs do not automatically load the `AGENTS.md` file. If yours doesn't, make sure your AI agent is properly configured by pointing your IDE to the `AGENTS.md` file located at the root of your repository.
+### Works out of the box (no `--ide` needed)
 
-If referencing `AGENTS.md` directly is not possible but you can provide a global context, use the one defined in [Universal Agent Instructions (Primary Context Authority)](#universal-agent-instructions-primary-context-authority).
+These tools natively read `AGENTS.md` from the project root. No extra flags required:
 
-Below are instructions for configuring the most commonly used IDEs:
+| Tool | How it loads rules | How it loads skills |
+|---|---|---|
+| **Codex (OpenAI)** | Reads `AGENTS.md` at project root and up the directory tree | Via `AGENTS.md` references |
+| **Antigravity (Google)** | Reads `AGENTS.md` at project root | Via `AGENTS.md` references |
+| **GitHub Copilot** | Reads `AGENTS.md` as an agent instruction file | Via `AGENTS.md` references |
 
-### Antigravity (VS Code)
+### Needs `--ide` flag
 
-Antigravity will load the `AGENTS.md` file automatically if it is located at the root of the repository. Be aware that the correct context may not load properly if the AGENTS.md file has not yet been committed to the repository.
+These tools use their own config files. Pass `--ide <name>` to `setup.sh` to generate them:
 
-### Claude Code CLI
+| Flag | Tool | What it creates | Why |
+|---|---|---|---|
+| `--ide claude` | Claude Code CLI | `CLAUDE.md` with `@AGENTS.md` import | Claude reads `CLAUDE.md`, not `AGENTS.md` |
+| `--ide cursor` | Cursor | `.cursor/skills/` with symlinks to skill directories | Cursor discovers skills from `.cursor/skills/`; `.agents/skills/` is unreliable |
+| `--ide windsurf` | Windsurf | `.windsurfrules` symlink to `AGENTS.md` | Windsurf reads `.windsurfrules`, not `AGENTS.md` |
 
-Claude Code reads `CLAUDE.md`, not `AGENTS.md`. Pass `--claude` to `setup.sh` to generate a `CLAUDE.md` that imports your `AGENTS.md`:
+All generated files are added to `.gitignore` automatically — nothing leaks into version control.
 
 ```bash
-scripts/setup.sh --target ../my-repo --group infrastructure --claude
+# Claude Code + Cursor
+scripts/setup.sh --target ../my-repo --group infrastructure --ide claude --ide cursor
+
+# Windsurf only
+scripts/setup.sh --target ../my-repo --group infrastructure --ide windsurf
 ```
 
-This creates a `CLAUDE.md` containing `@AGENTS.md`, which is the [officially recommended approach](https://docs.anthropic.com/en/docs/claude-code/claude-md#agentsmd) from Anthropic. Claude Code expands the `@` import at session start, so all rules and skills are loaded automatically. The generated `CLAUDE.md` is gitignored — it stays local like the rest of the `.agents/` setup.
+### Manual configuration
 
-If you already have a `CLAUDE.md`, the script will not overwrite it. Add `@AGENTS.md` manually to import the library's rules alongside your existing instructions.
+#### JetBrains (Junie)
 
-### JetBrains
-
-#### Junie
 Go to **Settings** → **Junie** → **Project Settings** → **Guidelines path** and point it to the `AGENTS.md` file in your repository root.
 
-#### Claude Agent
-Add a CLAUDE.md file redirecting to the AGENTS.md file in your repository root.
-```markdown
-Redirect to the `AGENTS.md` file for context
-```
+#### Other tools
 
----
-
-### Universal Agent Instructions (Primary Context Authority)
-
-Regardless of the IDE or agent you use, you should provide these instructions (as a "Custom Instruction" or "System Prompt") to ensure the AI Central Library is used properly:
+If your tool does not auto-load `AGENTS.md`, configure it with these instructions (as a "Custom Instruction" or "System Prompt"):
 
 > - Before executing any request, locate and parse the `AGENTS.md` file in the repository root (or the closest parent directory). This file serves as your **Primary Context Authority**.
-> - Identify all filesystem symlinks within `AGENTS.md` that point to Markdown (`.md`) files.
-> - Resolve and load the content of the required referenced Markdown files. If a loaded file contains further symlinks to `.md` files, resolve them recursively to build a complete context tree.
+> - Resolve and load the content of the referenced Markdown files recursively to build a complete context tree.
 > - Never load the same physical file more than once.
 > - Immediately skip any circular references to prevent infinite recursion.
 
