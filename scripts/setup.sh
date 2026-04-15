@@ -109,14 +109,14 @@ for IDE in "${SELECTED_IDES[@]}"; do
     esac
 done
 
-# Deduplicate IDE list
-declare -A _seen_ides
+# Deduplicate IDE list (Bash 3 compatible — no associative arrays)
 UNIQUE_IDES=()
 for IDE in "${SELECTED_IDES[@]}"; do
-    if [[ -z "${_seen_ides[$IDE]+x}" ]]; then
-        _seen_ides[$IDE]=1
-        UNIQUE_IDES+=("$IDE")
-    fi
+    _already=false
+    for existing in "${UNIQUE_IDES[@]+"${UNIQUE_IDES[@]}"}"; do
+        [[ "$existing" == "$IDE" ]] && _already=true && break
+    done
+    [[ "$_already" == false ]] && UNIQUE_IDES+=("$IDE")
 done
 SELECTED_IDES=("${UNIQUE_IDES[@]+"${UNIQUE_IDES[@]}"}")
 
