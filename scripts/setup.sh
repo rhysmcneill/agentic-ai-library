@@ -38,23 +38,25 @@ Set up AI agent configuration in a target repository. Supports Cursor, Claude Co
 ${BOLD}Options:${RESET}
   -t, --target <path>   Target repository path (required)
   -g, --group <name>    Group name in the config library (repeatable, at least one required)
+  --claude              Generate a CLAUDE.md that imports AGENTS.md (for Claude Code CLI users)
   -h, --help            Show this help message
 
 ${BOLD}Examples:${RESET}
   # Single group
   $0 --target ../my-repo --group infrastructure
 
+  # With Claude Code CLI support
+  $0 --target ../my-repo --group infrastructure --claude
+
   # Multiple groups (monorepo with backend + infra)
   $0 --target ../my-monorepo --group backend --group infrastructure
-
-  # Multiple groups (frontend project using shared language rules)
-  $0 --target ../web-app --group frontend --group typescript
 EOF
     exit 1
 }
 
 TARGET=""
 SELECTED_GROUPS=()
+ENABLE_CLAUDE=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -65,6 +67,10 @@ while [[ $# -gt 0 ]]; do
         -g|--group)
             SELECTED_GROUPS+=("$2")
             shift 2
+            ;;
+        --claude)
+            ENABLE_CLAUDE=true
+            shift
             ;;
         -h|--help)
             usage
@@ -261,7 +267,24 @@ else
     step "Updated root AGENTS.md"
 fi
 
-# 9. Update .gitignore
+# 9. Generate CLAUDE.md for Claude Code CLI compatibility (opt-in)
+if [[ "$ENABLE_CLAUDE" == true ]]; then
+    CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
+    if [[ ! -f "$CLAUDE_MD" ]]; then
+        cat << 'EOF' > "$CLAUDE_MD"
+@AGENTS.md
+EOF
+        step "Created CLAUDE.md     ${DIM}(imports AGENTS.md for Claude Code CLI)${RESET}"
+    else
+        if ! grep -q "@AGENTS.md" "$CLAUDE_MD"; then
+            info "CLAUDE.md exists but does not import AGENTS.md — add ${CYAN}@AGENTS.md${RESET} manually if needed"
+        else
+            step "CLAUDE.md already imports AGENTS.md"
+        fi
+    fi
+fi
+
+# 10. Update .gitignore
 GITIGNORE="$TARGET_DIR/.gitignore"
 
 add_to_gitignore() {
@@ -276,6 +299,10 @@ add_to_gitignore() {
 add_to_gitignore "# AI Agent Configuration (managed by agentic-ai-library)"
 add_to_gitignore ".agents/"
 add_to_gitignore "AGENTS.local.md"
+if [[ "$ENABLE_CLAUDE" == true ]]; then
+    add_to_gitignore "CLAUDE.md"
+    add_to_gitignore "CLAUDE.local.md"
+fi
 step "Updated .gitignore"
 
 # Done

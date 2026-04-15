@@ -270,6 +270,18 @@ Below are instructions for configuring the most commonly used IDEs:
 
 Antigravity will load the `AGENTS.md` file automatically if it is located at the root of the repository. Be aware that the correct context may not load properly if the AGENTS.md file has not yet been committed to the repository.
 
+### Claude Code CLI
+
+Claude Code reads `CLAUDE.md`, not `AGENTS.md`. Pass `--claude` to `setup.sh` to generate a `CLAUDE.md` that imports your `AGENTS.md`:
+
+```bash
+scripts/setup.sh --target ../my-repo --group infrastructure --claude
+```
+
+This creates a `CLAUDE.md` containing `@AGENTS.md`, which is the [officially recommended approach](https://docs.anthropic.com/en/docs/claude-code/claude-md#agentsmd) from Anthropic. Claude Code expands the `@` import at session start, so all rules and skills are loaded automatically. The generated `CLAUDE.md` is gitignored — it stays local like the rest of the `.agents/` setup.
+
+If you already have a `CLAUDE.md`, the script will not overwrite it. Add `@AGENTS.md` manually to import the library's rules alongside your existing instructions.
+
 ### JetBrains
 
 #### Junie
