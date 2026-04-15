@@ -38,7 +38,9 @@ agentic-ai-library/
 │   ├── infrastructure/           # Group domain (Infra: Terramate, Helm, ArgoCD)
 │   │   ├── AGENTS.md             # INFRA-* rules
 │   │   └── skills/
-│   │       └── commit/           # Conventional Commits skill
+│   │       ├── commit/           # Conventional Commits skill
+│   │       ├── create-pr/        # Create PRs for infra repos
+│   │       └── repo-structure-review/ # Audit and improve repo layout
 │   ├── open-source-contrib/      # Group domain (Open-source contributions)
 │   │   ├── AGENTS.md             # open-source-* rules
 │   │   └── skills/

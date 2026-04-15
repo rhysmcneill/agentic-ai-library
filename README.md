@@ -106,7 +106,9 @@ agentic-ai-library/
 │   ├── infrastructure/           # Group: Infrastructure
 │   │   ├── AGENTS.md             # Terramate, Helm, ArgoCD rules
 │   │   └── skills/               # Infra-specific skills
-│   │       └── commit/           # Conventional Commits skill
+│   │       ├── commit/           # Conventional Commits skill
+│   │       ├── create-pr/        # Create PRs for infra repos
+│   │       └── repo-structure-review/ # Audit and improve repo layout
 │   ├── open-source-contrib/      # Group: Open-source contributions
 │   │   ├── AGENTS.md             # Open-source contribution rules
 │   │   └── skills/               # Open-source-specific skills
@@ -317,11 +319,13 @@ Commit when done — the pre-commit hook regenerates `_generated/` automatically
 |---|---|---|
 | [`commit`](groups/infrastructure/skills/commit/SKILL.md) | `infrastructure` | Analyzes changes and creates git commits following Conventional Commits 1.0.0 with Jira references and AI attribution. |
 | [`create-issue`](groups/open-source-contrib/skills/create-issue/SKILL.md) | `open-source-contrib` | Creates well-structured issues in OSS repositories following the project's templates and guidelines. |
+| [`create-pr`](groups/infrastructure/skills/create-pr/SKILL.md) | `infrastructure` | Creates pull requests for infrastructure repos with Terramate, Helm, Terraform, and ArgoCD validation. |
 | [`create-pr`](groups/open-source-contrib/skills/create-pr/SKILL.md) | `open-source-contrib` | Submits pull requests to OSS repositories following contribution guidelines, PR templates, and CI requirements. |
 | [`dev-env-setup`](groups/open-source-contrib/skills/dev-env-setup/SKILL.md) | `open-source-contrib` | Sets up development environments for OSS repositories. |
 | [`golang-api`](groups/backend/skills/golang-api/SKILL.md) | `backend` | Enforces Go API best practices for project structure, handlers, error handling, middleware, and testing. |
 | [`repo-onboard`](groups/open-source-contrib/skills/repo-onboard/SKILL.md) | `open-source-contrib` | Onboards onto a new OSS repository by reading documentation, understanding structure, and summarising how to contribute. |
 | [`repo-research`](groups/open-source-contrib/skills/repo-research/SKILL.md) | `open-source-contrib` | Researches a repository to find potential improvements, enhancements, bug fixes, and feature opportunities. |
+| [`repo-structure-review`](groups/infrastructure/skills/repo-structure-review/SKILL.md) | `infrastructure` | Audits infrastructure repo structure and recommends improvements for Terraform, Helm, and ArgoCD layouts. |
 | [`skill-creator`](global/skills/skill-creator/SKILL.md) | `global` | Guides agents through creating a new skill following the agentskills.io standard. |
 
 ## Standards
