@@ -95,6 +95,16 @@ TARGET_DIR="$(cd "$TARGET" && pwd)"
 
 GROUPS_DIR="$LIBRARY_DIR/groups"
 
+# Portable relative path (works on macOS and Linux without GNU coreutils)
+if ! command -v python3 &>/dev/null; then
+    err "python3 is required but not found. Install Python 3 and try again."
+    exit 1
+fi
+
+relpath() {
+    python3 -c "import os.path, sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))" "$1" "$2"
+}
+
 for GROUP in "${SELECTED_GROUPS[@]}"; do
     if [[ ! -d "$GROUPS_DIR/$GROUP" ]]; then
         err "Group '$GROUP' does not exist in the library ($GROUPS_DIR/$GROUP)."
@@ -120,20 +130,20 @@ done
 step "Created directory structure"
 
 # 2. Symlink global rules
-REL_GLOBAL_AGENTS=$(realpath --relative-to="$AGENTS_DIR/rules" "$LIBRARY_DIR/global/AGENTS.md")
+REL_GLOBAL_AGENTS=$(relpath "$LIBRARY_DIR/global/AGENTS.md" "$AGENTS_DIR/rules")
 ln -sfn "$REL_GLOBAL_AGENTS" "$AGENTS_DIR/rules/agents-global-link"
 step "Linked global rules"
 
 # 3. Symlink group rules
 for GROUP in "${SELECTED_GROUPS[@]}"; do
-    REL_GROUP_AGENTS=$(realpath --relative-to="$AGENTS_DIR/rules" "$GROUPS_DIR/$GROUP/AGENTS.md")
+    REL_GROUP_AGENTS=$(relpath "$GROUPS_DIR/$GROUP/AGENTS.md" "$AGENTS_DIR/rules")
     ln -sfn "$REL_GROUP_AGENTS" "$AGENTS_DIR/rules/agents-$GROUP-link"
 done
 step "Linked group rules  ${DIM}(${SELECTED_GROUPS[*]})${RESET}"
 
 # 4. Symlink global skills
 if [[ -d "$LIBRARY_DIR/global/skills" ]]; then
-    REL_GLOBAL_SKILLS=$(realpath --relative-to="$AGENTS_DIR/skills" "$LIBRARY_DIR/global/skills")
+    REL_GLOBAL_SKILLS=$(relpath "$LIBRARY_DIR/global/skills" "$AGENTS_DIR/skills")
     ln -sfn "$REL_GLOBAL_SKILLS" "$AGENTS_DIR/skills/global-links"
 fi
 
@@ -141,7 +151,7 @@ fi
 SKILL_GROUPS=()
 for GROUP in "${SELECTED_GROUPS[@]}"; do
     if [[ -d "$GROUPS_DIR/$GROUP/skills" ]]; then
-        REL_GROUP_SKILLS=$(realpath --relative-to="$AGENTS_DIR/skills" "$GROUPS_DIR/$GROUP/skills")
+        REL_GROUP_SKILLS=$(relpath "$GROUPS_DIR/$GROUP/skills" "$AGENTS_DIR/skills")
         ln -sfn "$REL_GROUP_SKILLS" "$AGENTS_DIR/skills/$GROUP-links"
         SKILL_GROUPS+=("$GROUP")
     fi
@@ -238,7 +248,11 @@ if [[ ! -f "$ROOT_AGENTS" ]]; then
     step "Created root AGENTS.md"
 else
     if grep -q "$MANAGED_START" "$ROOT_AGENTS"; then
-        sed -i "/$MANAGED_START/,/$MANAGED_END/d" "$ROOT_AGENTS"
+        if [[ "$(uname)" == "Darwin" ]]; then
+            sed -i '' "/$MANAGED_START/,/$MANAGED_END/d" "$ROOT_AGENTS"
+        else
+            sed -i "/$MANAGED_START/,/$MANAGED_END/d" "$ROOT_AGENTS"
+        fi
         echo "$MANAGED_CONTENT" >> "$ROOT_AGENTS"
     else
         echo "" >> "$ROOT_AGENTS"
