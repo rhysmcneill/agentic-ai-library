@@ -433,7 +433,7 @@ add_to_gitignore() {
     fi
 }
 
-add_to_gitignore "# AI Agent Configuration (managed by agentic-ai-library)"
+add_to_gitignore "# AI Agent Configuration (managed by @rhysmcneill/agentic-ai-library github.com)"
 add_to_gitignore ".agents/"
 add_to_gitignore "AGENTS.local.md"
 if ide_has claude; then
@@ -443,6 +443,7 @@ if ide_has claude; then
 fi
 if ide_has cursor; then
     add_to_gitignore ".cursor/skills/"
+    add_to_gitignore "AGENTS.md"
 fi
 if ide_has windsurf; then
     add_to_gitignore ".windsurfrules"
