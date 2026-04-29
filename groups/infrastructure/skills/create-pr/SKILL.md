@@ -78,7 +78,6 @@ Use the `commit` skill if available in this project. Otherwise, follow Conventio
 [optional body]
 
 Refs: <Ticket-ID>
-Co-Authored-By: <Agent Name> <Agent Email>
 ```
 
 Keep commits atomic — one logical change per commit. If the project squashes on merge, a single commit is acceptable.

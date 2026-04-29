@@ -310,19 +310,81 @@ ide_has() {
     return 1
 }
 
-# -- Claude Code: generate CLAUDE.md with @AGENTS.md import
+# -- Claude Code: symlink skills into .claude/skills/ and generate CLAUDE.md with explicit imports
 if ide_has claude; then
+    CLAUDE_SKILLS="$TARGET_DIR/.claude/skills"
+    mkdir -p "$CLAUDE_SKILLS"
+
+    if [[ -d "$LIBRARY_DIR/global/skills" ]]; then
+        REL=$(relpath "$LIBRARY_DIR/global/skills" "$CLAUDE_SKILLS")
+        ln -sfn "$REL" "$CLAUDE_SKILLS/global-links"
+    fi
+
+    for GROUP in "${SELECTED_GROUPS[@]}"; do
+        if [[ -d "$GROUPS_DIR/$GROUP/skills" ]]; then
+            REL=$(relpath "$GROUPS_DIR/$GROUP/skills" "$CLAUDE_SKILLS")
+            ln -sfn "$REL" "$CLAUDE_SKILLS/$GROUP-links"
+        fi
+    done
+    step "Linked Claude skills  ${DIM}(.claude/skills/)${RESET}"
+
+    # Build the managed skills block content for CLAUDE.md
+    CLAUDE_SKILLS_CONTENT=""
+    if [[ -d "$LIBRARY_DIR/global/skills" ]]; then
+        CLAUDE_SKILLS_CONTENT+="### Global Skills"$'\n'$'\n'
+        while IFS= read -r skill_file; do
+            skill_name=$(basename "$(dirname "$skill_file")")
+            CLAUDE_SKILLS_CONTENT+="@.claude/skills/global-links/$skill_name/SKILL.md"$'\n'
+        done < <(find "$LIBRARY_DIR/global/skills" -maxdepth 2 -name "SKILL.md" | sort)
+        CLAUDE_SKILLS_CONTENT+=$'\n'
+    fi
+    for GROUP in "${SELECTED_GROUPS[@]}"; do
+        if [[ -d "$GROUPS_DIR/$GROUP/skills" ]]; then
+            CLAUDE_SKILLS_CONTENT+="### Group ($GROUP) Skills"$'\n'$'\n'
+            while IFS= read -r skill_file; do
+                skill_name=$(basename "$(dirname "$skill_file")")
+                CLAUDE_SKILLS_CONTENT+="@.claude/skills/$GROUP-links/$skill_name/SKILL.md"$'\n'
+            done < <(find "$GROUPS_DIR/$GROUP/skills" -maxdepth 2 -name "SKILL.md" | sort)
+            CLAUDE_SKILLS_CONTENT+=$'\n'
+        fi
+    done
+
     CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
-    if [[ ! -f "$CLAUDE_MD" ]]; then
-        cat << 'EOF' > "$CLAUDE_MD"
+    CLAUDE_MANAGED_START="<!-- CLAUDE_MANAGED_START -->"
+    CLAUDE_MANAGED_END="<!-- CLAUDE_MANAGED_END -->"
+
+    CLAUDE_MANAGED_BLOCK=$(cat << EOF
+$CLAUDE_MANAGED_START
+## Rules
+
 @AGENTS.md
+
+## Skills
+
+$CLAUDE_SKILLS_CONTENT$CLAUDE_MANAGED_END
 EOF
-        step "Created CLAUDE.md     ${DIM}(imports AGENTS.md for Claude Code CLI)${RESET}"
+)
+
+    if [[ ! -f "$CLAUDE_MD" ]]; then
+        cat << EOF > "$CLAUDE_MD"
+# Claude Code Configuration
+
+$CLAUDE_MANAGED_BLOCK
+EOF
+        step "Created CLAUDE.md     ${DIM}(rules + explicit skill imports for Claude Code)${RESET}"
     else
-        if ! grep -q "@AGENTS.md" "$CLAUDE_MD"; then
-            info "CLAUDE.md exists but does not import AGENTS.md — add ${CYAN}@AGENTS.md${RESET} manually if needed"
+        if grep -q "$CLAUDE_MANAGED_START" "$CLAUDE_MD"; then
+            if [[ "$(uname)" == "Darwin" ]]; then
+                sed -i '' "/$CLAUDE_MANAGED_START/,/$CLAUDE_MANAGED_END/d" "$CLAUDE_MD"
+            else
+                sed -i "/$CLAUDE_MANAGED_START/,/$CLAUDE_MANAGED_END/d" "$CLAUDE_MD"
+            fi
+            echo "$CLAUDE_MANAGED_BLOCK" >> "$CLAUDE_MD"
+            step "Updated CLAUDE.md     ${DIM}(refreshed managed skills block)${RESET}"
         else
-            step "CLAUDE.md already imports AGENTS.md"
+            echo "" >> "$CLAUDE_MD"
+            echo "$CLAUDE_MANAGED_BLOCK" >> "$CLAUDE_MD"
+            step "Updated CLAUDE.md     ${DIM}(appended managed skills block)${RESET}"
         fi
     fi
 fi
@@ -375,6 +437,7 @@ add_to_gitignore "# AI Agent Configuration (managed by agentic-ai-library)"
 add_to_gitignore ".agents/"
 add_to_gitignore "AGENTS.local.md"
 if ide_has claude; then
+    add_to_gitignore ".claude/"
     add_to_gitignore "CLAUDE.md"
     add_to_gitignore "CLAUDE.local.md"
 fi

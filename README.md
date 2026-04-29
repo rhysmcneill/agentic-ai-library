@@ -105,13 +105,16 @@ agentic-ai-library/
 │   ├── backend/                  # Group: Backend services
 │   │   ├── AGENTS.md             # Backend services rules
 │   │   └── skills/               # Backend-specific skills
-│   │       └── golang-api/       # Go API patterns skill
+│   │       ├── golang-api/       # Go API patterns skill
+│   │       └── golang-expert/    # Idiomatic Go: errors, concurrency, CLI, I/O, security
 │   ├── infrastructure/           # Group: Infrastructure
 │   │   ├── AGENTS.md             # Terramate, Helm, ArgoCD rules
 │   │   └── skills/               # Infra-specific skills
 │   │       ├── commit/           # Conventional Commits skill
 │   │       ├── create-pr/        # Create PRs for infra repos
-│   │       └── repo-structure-review/ # Audit and improve repo layout
+│   │       ├── repo-structure-review/ # Audit and improve repo layout
+│   │       ├── terraform-expert/ # 37 Terraform/IaC best-practice rules (sourced from Terramate)
+│   │       └── terramate-expert/ # Terramate CLI, Cloud, Catalyst, CI/CD rules (sourced from Terramate)
 │   ├── open-source-contrib/      # Group: Open-source contributions
 │   │   ├── AGENTS.md             # Open-source contribution rules
 │   │   └── skills/               # Open-source-specific skills
@@ -228,8 +231,12 @@ Because rules and skills are symlinked back to this library, updates you pull he
 ```text
 my-repo/
 ├── AGENTS.md                          ← Root entry point (works for Codex, Antigravity, Copilot)
-├── CLAUDE.md                          ← (--ide claude) imports AGENTS.md for Claude Code CLI
+├── CLAUDE.md                          ← (--ide claude) rules + explicit skill @-imports for Claude Code
 ├── .windsurfrules                     ← (--ide windsurf) symlink to AGENTS.md
+├── .claude/                           ← (--ide claude) gitignored
+│   └── skills/
+│       ├── global-links/              → symlink to library/global/skills/
+│       └── infrastructure-links/      → symlink to library/groups/infrastructure/skills/
 ├── .cursor/
 │   └── skills/                        ← (--ide cursor) skill symlinks for Cursor discovery
 │       ├── global-links/              → symlink to library/global/skills/
@@ -273,6 +280,9 @@ scripts/generate-indexes.sh
 
 ## IDE and Tool Compatibility
 
+> [!NOTE]
+> **Actively maintained IDE integrations:** `--ide claude` (Claude Code CLI) and `--ide cursor` (Cursor) are the primary supported targets. Windsurf (`--ide windsurf`) remains available but is not a current focus. Additional IDEs and AI tools will be added in future releases, each following their own native conventions.
+
 ### Works out of the box (no `--ide` needed)
 
 These tools natively read `AGENTS.md` from the project root. No extra flags required:
@@ -289,7 +299,7 @@ These tools use their own config files. Pass `--ide <name>` to `setup.sh` to gen
 
 | Flag | Tool | What it creates | Why |
 |---|---|---|---|
-| `--ide claude` | Claude Code CLI | `CLAUDE.md` with `@AGENTS.md` import | Claude reads `CLAUDE.md`, not `AGENTS.md` |
+| `--ide claude` | Claude Code CLI | `CLAUDE.md` with explicit `@`-imports for rules and every skill + `.claude/skills/` symlinks | Claude needs skills explicitly listed in `CLAUDE.md` to load them into context |
 | `--ide cursor` | Cursor | `.cursor/skills/` with symlinks to skill directories | Cursor discovers skills from `.cursor/skills/`; `.agents/skills/` is unreliable |
 | `--ide windsurf` | Windsurf | `.windsurfrules` symlink to `AGENTS.md` | Windsurf reads `.windsurfrules`, not `AGENTS.md` |
 
@@ -348,10 +358,13 @@ Commit when done — the pre-commit hook regenerates `_generated/` automatically
 | [`create-pr`](groups/open-source-contrib/skills/create-pr/SKILL.md) | `open-source-contrib` | Submits pull requests to OSS repositories following contribution guidelines, PR templates, and CI requirements. |
 | [`dev-env-setup`](groups/open-source-contrib/skills/dev-env-setup/SKILL.md) | `open-source-contrib` | Sets up development environments for OSS repositories. |
 | [`golang-api`](groups/backend/skills/golang-api/SKILL.md) | `backend` | Enforces Go API best practices for project structure, handlers, error handling, middleware, and testing. |
+| [`golang-expert`](groups/backend/skills/golang-expert/SKILL.md) | `backend` | Idiomatic Go best practices covering code organisation, error handling, security, interfaces, concurrency, CLI tool creation, file I/O, raw strings, testing, and tooling. 47 rules across 10 categories with local reference files. |
 | [`repo-onboard`](groups/open-source-contrib/skills/repo-onboard/SKILL.md) | `open-source-contrib` | Onboards onto a new OSS repository by reading documentation, understanding structure, and summarising how to contribute. |
 | [`repo-research`](groups/open-source-contrib/skills/repo-research/SKILL.md) | `open-source-contrib` | Researches a repository to find potential improvements, enhancements, bug fixes, and feature opportunities. |
 | [`repo-structure-review`](groups/infrastructure/skills/repo-structure-review/SKILL.md) | `infrastructure` | Audits infrastructure repo structure and recommends improvements for Terraform, Helm, and ArgoCD layouts. |
 | [`skill-creator`](global/skills/skill-creator/SKILL.md) | `global` | Guides agents through creating a new skill following the agentskills.io standard. |
+| [`terraform-expert`](groups/infrastructure/skills/terraform-expert/SKILL.md) | `infrastructure` | Terraform and IaC optimization guidelines covering 37 rules across 10 categories (state, security, modules, variables, testing, and more). Sourced from [terramate-io/agent-skills](https://github.com/terramate-io/agent-skills). |
+| [`terramate-expert`](groups/infrastructure/skills/terramate-expert/SKILL.md) | `infrastructure` | Terramate CLI, Cloud, and Catalyst best practices covering stack management, orchestration, code generation, CI/CD, and drift reconciliation. Sourced from [terramate-io/agent-skills](https://github.com/terramate-io/agent-skills). |
 
 ## Standards
 
