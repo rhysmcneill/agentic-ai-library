@@ -118,7 +118,7 @@ for IDE in "${SELECTED_IDES[@]}"; do
     done
     [[ "$_already" == false ]] && UNIQUE_IDES+=("$IDE")
 done
-SELECTED_IDES=("${UNIQUE_IDES[@]+"${UNIQUE_IDES[@]}"}")
+SELECTED_IDES=("${UNIQUE_IDES[@]:-}")
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIBRARY_DIR="$(dirname "$SCRIPT_DIR")"
@@ -304,7 +304,7 @@ fi
 # 9. IDE-specific integrations (opt-in via --ide)
 ide_has() {
     local needle="$1"
-    for ide in "${SELECTED_IDES[@]}"; do
+    for ide in "${SELECTED_IDES[@]:-}"; do
         [[ "$ide" == "$needle" ]] && return 0
     done
     return 1
@@ -317,13 +317,15 @@ if ide_has claude; then
 
     if [[ -d "$LIBRARY_DIR/global/skills" ]]; then
         REL=$(relpath "$LIBRARY_DIR/global/skills" "$CLAUDE_SKILLS")
-        ln -sfn "$REL" "$CLAUDE_SKILLS/global-links"
+        rm -rf "$CLAUDE_SKILLS/global-links"
+        ln -s "$REL" "$CLAUDE_SKILLS/global-links"
     fi
 
     for GROUP in "${SELECTED_GROUPS[@]}"; do
         if [[ -d "$GROUPS_DIR/$GROUP/skills" ]]; then
             REL=$(relpath "$GROUPS_DIR/$GROUP/skills" "$CLAUDE_SKILLS")
-            ln -sfn "$REL" "$CLAUDE_SKILLS/$GROUP-links"
+            rm -rf "$CLAUDE_SKILLS/$GROUP-links"
+            ln -s "$REL" "$CLAUDE_SKILLS/$GROUP-links"
         fi
     done
     step "Linked Claude skills  ${DIM}(.claude/skills/)${RESET}"
@@ -396,13 +398,15 @@ if ide_has cursor; then
 
     if [[ -d "$LIBRARY_DIR/global/skills" ]]; then
         REL=$(relpath "$LIBRARY_DIR/global/skills" "$CURSOR_SKILLS")
-        ln -sfn "$REL" "$CURSOR_SKILLS/global-links"
+        rm -rf "$CURSOR_SKILLS/global-links"
+        ln -s "$REL" "$CURSOR_SKILLS/global-links"
     fi
 
     for GROUP in "${SELECTED_GROUPS[@]}"; do
         if [[ -d "$GROUPS_DIR/$GROUP/skills" ]]; then
             REL=$(relpath "$GROUPS_DIR/$GROUP/skills" "$CURSOR_SKILLS")
-            ln -sfn "$REL" "$CURSOR_SKILLS/$GROUP-links"
+            rm -rf "$CURSOR_SKILLS/$GROUP-links"
+            ln -s "$REL" "$CURSOR_SKILLS/$GROUP-links"
         fi
     done
     step "Linked Cursor skills  ${DIM}(.cursor/skills/)${RESET}"
