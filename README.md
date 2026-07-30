@@ -123,8 +123,18 @@ agentic-ai-library/
 │   │       ├── dev-env-setup/    # Set up development environments
 │   │       ├── repo-onboard/     # Onboard onto a new OSS repository
 │   │       └── repo-research/    # Research repos for contribution opportunities
-│   └── release/                  # Group: Release management
-│       └── AGENTS.md             # Semver, artifacts, changelog rules
+│   ├── release/                  # Group: Release management
+│   │   └── AGENTS.md             # Semver, artifacts, changelog rules
+│   └── security/                 # Group: Bug bounty and security research
+│       ├── AGENTS.md             # Authorization, scope, cloud-first, report quality rules
+│       └── skills/               # Security-specific skills
+│           ├── bug-bounty/       # Session coordinator — authorization context and phase routing
+│           ├── bb-program-research/ # Evaluate a program before committing time to it
+│           ├── bb-recon/         # Cloud-first attack surface discovery
+│           ├── bb-secrets-hunting/  # GitHub, npm, Docker, CI/CD credential leaks
+│           ├── bb-vuln-analysis/ # SSRF, S3, IAM, subdomain takeover, DNS, IDOR
+│           ├── bb-api-testing/   # JWT, GraphQL, BOLA, mass assignment
+│           └── bb-report-writer/ # HackerOne/Bugcrowd/Intigriti report drafting
 ├── _generated/                   # Pre-built indexes per group (committed)
 │   ├── backend/
 │   │   ├── master-index.md       # Master config index for backend repos
@@ -365,6 +375,13 @@ Commit when done — the pre-commit hook regenerates `_generated/` automatically
 | [`skill-creator`](global/skills/skill-creator/SKILL.md) | `global` | Guides agents through creating a new skill following the agentskills.io standard. |
 | [`terraform-expert`](groups/infrastructure/skills/terraform-expert/SKILL.md) | `infrastructure` | Terraform and IaC optimization guidelines covering 37 rules across 10 categories (state, security, modules, variables, testing, and more). Sourced from [terramate-io/agent-skills](https://github.com/terramate-io/agent-skills). |
 | [`terramate-expert`](groups/infrastructure/skills/terramate-expert/SKILL.md) | `infrastructure` | Terramate CLI, Cloud, and Catalyst best practices covering stack management, orchestration, code generation, CI/CD, and drift reconciliation. Sourced from [terramate-io/agent-skills](https://github.com/terramate-io/agent-skills). |
+| [`bug-bounty`](groups/security/skills/bug-bounty/SKILL.md) | `security` | Session coordinator for authorized bug bounty research. Establishes authorization context, validates scope, and routes to specialist skills. Run at the start of every bug bounty session. |
+| [`bb-program-research`](groups/security/skills/bb-program-research/SKILL.md) | `security` | Evaluates a bug bounty program before committing time to it. Analyses competition level, disclosed reports, tech stack, and scope quality to identify the lowest-competition attack surfaces. |
+| [`bb-recon`](groups/security/skills/bb-recon/SKILL.md) | `security` | Cloud-first reconnaissance covering passive OSINT, certificate transparency, GitHub secrets, DNS fingerprinting, S3/GCS/Azure bucket enumeration, Shodan, and active probing. |
+| [`bb-secrets-hunting`](groups/security/skills/bb-secrets-hunting/SKILL.md) | `security` | Hunts for leaked credentials across GitHub commits and forks, npm/PyPI packages, Docker Hub images, CI/CD artifact logs, and public paste sites. Includes credential validation guidance. |
+| [`bb-vuln-analysis`](groups/security/skills/bb-vuln-analysis/SKILL.md) | `security` | Validates and assesses security findings including SSRF to IMDS, cloud storage misconfigs, IAM privilege escalation, subdomain takeover, DNS issues, IDOR, and general web vulnerabilities. |
+| [`bb-api-testing`](groups/security/skills/bb-api-testing/SKILL.md) | `security` | Structured API security testing covering endpoint enumeration, GraphQL introspection and batching attacks, JWT algorithm confusion, BOLA/IDOR, mass assignment, and API versioning issues. |
+| [`bb-report-writer`](groups/security/skills/bb-report-writer/SKILL.md) | `security` | Drafts high-quality bug bounty reports for HackerOne, Bugcrowd, and Intigriti with CVSS scoring, three-layer impact structure, precise reproduction steps, and pre-submission checklist. |
 
 ## Standards
 
