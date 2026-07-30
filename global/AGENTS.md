@@ -19,6 +19,7 @@ Global baseline guide for any AI coding agent. This file applies to all reposito
 - `groups/infrastructure/` (Terramate, Helm, ArgoCD rules)
 - `groups/open-source-contrib/` (Open-source contribution rules)
 - `groups/release/` (Semver, artifacts, changelog rules)
+- `groups/security/` (Bug bounty and authorized security research rules)
 
 ## Global rules
 
