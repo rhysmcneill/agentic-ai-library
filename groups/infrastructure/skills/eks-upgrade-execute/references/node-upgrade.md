@@ -26,7 +26,7 @@ aws eks describe-nodegroup --cluster-name <cluster> --nodegroup-name <nodegroup>
 
   "Done" means `describe-update` reports `Successful` and every node in the group reports the target version (`kubectl get nodes -o wide`).
 
-- **Pinned independently** (its own version field, not derived from the cluster version): this needs its own IaC edit and PR, exactly like Step 3 — bump it, open a PR, and get a separate explicit merge from the user before it starts. Never bypass IaC by calling `aws eks update-nodegroup-version` directly; that would change live state out from under the next `terraform plan`/`terramate run` and cause drift.
+- **Pinned independently** (its own version field, not derived from the cluster version): this needs its own IaC edit and PR, exactly like Step 3 — bump it, open a PR, and get a separate explicit merge from the user before it starts. Never bypass IaC by calling `aws eks update-nodegroup-version` directly; that would change live state out from under this cluster's own IaC tool (Terraform, OpenTofu, Terramate, Terragrunt, CDK — whichever applies) and show up as drift on its next plan.
 
 Either way, AWS handles the drain/cordon sequencing itself once the update is underway — your job is to watch it against the gates in `references/checkpoints.md`, not drive individual nodes.
 
