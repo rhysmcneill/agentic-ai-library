@@ -9,7 +9,7 @@ metadata:
 
 This is the investigation phase of an EKS cluster upgrade: find out, before anyone touches a version number, whether the cluster is actually ready to move to the next Kubernetes version, and exactly what would break if it did. The value of this skill is catching the thing nobody remembered to check — the one that's always a human guessing which release notes matter — not running a few `kubectl` one-liners that could already be scripted.
 
-**This skill is strictly read-only.** Query the cluster, AWS APIs, and the internet. Never run `kubectl apply/delete/drain/cordon`, never run `terraform/terramate/tofu apply`, never edit IaC files, never open a PR, never create tracking tickets. If any of that feels useful, say so in the report and stop there — that's the execution skill's job, not this one.
+**This skill is strictly read-only.** Query the cluster, AWS APIs, and the internet. Never run `kubectl apply/delete/drain/cordon`, never run any IaC apply/deploy command (`terraform apply`, `tofu apply`, `terramate run`, `terragrunt apply`, `cdk deploy`, etc. — whichever this cluster actually uses), never edit IaC files, never open a PR, never create tracking tickets. If any of that feels useful, say so in the report and stop there — that's the execution skill's job, not this one.
 
 ## Step 0: always confirm context with the user before touching anything
 
