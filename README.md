@@ -12,7 +12,9 @@ For picking up a single public skill with no setup, no clone, no fork:
 
 ```
 /plugin marketplace add rhysmcneill/agentic-ai-library
-/plugin install eks-upgrade-prep        # or /plugin install eks-upgrade-execute
+/plugin install eks-upgrade-prep
+/plugin install eks-upgrade-execute
+... etc
 ```
 
 Only skills listed in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) are installable this way — see [Publishing a skill as a plugin](CONTRIBUTING.md#publishing-a-skill-as-a-plugin) to add one. This is Claude Code only; other tools need Option B.
