@@ -34,18 +34,17 @@ Be precise with the user about what this backup buys them: it's workload and dat
 ## Step 3: Control-plane version bump
 
 1. Locate the version field using the path recorded in the cluster config (see `references/cluster-config.md` if you need to re-derive it).
-2. Before opening the PR, check whether node replacement rides along with this same change (see `references/node-upgrade.md` — for managed node groups, this is usually true: their version/AMI release is commonly tied to the same variable as the control-plane version, so one apply does both). Tell the user plainly which is the case for this cluster, so their merge decision in the next step already accounts for whether it also disrupts nodes — don't let that surface as a surprise after the fact.
+2. Before opening the PR, check whether node replacement rides along with this same change (see `references/node-upgrade.md`). This is the common case for both compute types, not an edge case: a managed node group whose version/AMI release is tied to the same IaC variable as the control plane updates in the same apply, and Karpenter whose EC2NodeClass references an AMI alias (not a pinned AMI ID) will drift-detect and start replacing nodes itself, at whatever rate its NodePool's disruption budget allows, the moment the control plane moves. Tell the user plainly which is the case for this cluster, so their merge decision in the next step already accounts for whether it also disrupts nodes — don't let that surface as a surprise after the fact.
 3. Edit the version field, open a PR with a clear description (what's changing, whether it also triggers node replacement, link to the prep report), and **stop**.
 4. Tell the user the PR is ready and that you need them to review and merge it — then wait. Don't poll aggressively; ask them to let you know once it's merged, or check back at a reasonable interval.
 5. Once merged, confirm the CI/CD pipeline actually ran and the control plane reports the target version (`aws eks describe-cluster`) before moving on.
 
 ## Step 4: Checkpoint — confirm before anything that disrupts nodes
 
-This gate only applies to whatever actually requires *this skill* to take an action that disrupts nodes — it is not a blanket pause after every merge, because for a coupled managed node group the disruption already started automatically the moment the human merged the Step 3 PR (and that merge was already their go-ahead for it, per Step 3.2). Where it does apply:
+This gate only applies to whatever actually requires *this skill* to take an action that disrupts nodes — it is not a blanket pause after every merge, because where replacement is already automatic (a coupled managed node group, or Karpenter with an AMI alias and a working disruption budget) the disruption started the moment the human merged the Step 3 PR, and that merge was already their go-ahead for it, per Step 3.2. Where this gate does apply:
 
-- **Karpenter** doesn't replace nodes on its own just because the control plane moved — triggering that replacement is this skill's own action, so get an explicit, separate go-ahead before doing it.
-- **An independently-versioned managed node group** (not coupled to the cluster version) needs its own IaC bump and PR, same as Step 3 — that's a second merge decision, not an automatic continuation.
-- **Fargate** rollouts of existing workloads are also this skill's own triggered action, not automatic.
+- **An independently-versioned managed node group, or Karpenter not configured for automatic drift replacement** (pinned AMI ID, a zero/blocking disruption budget, or a blocking `do-not-disrupt` annotation) — this cluster is IaC/GitOps-managed, so the fix is an IaC change (bump the node group version, adjust the NodePool/EC2NodeClass, or remove the blocking annotation from the manifest it lives in), opened as a PR exactly like Step 3. Never fix this with an imperative command like `kubectl delete nodeclaim` — that bypasses the same GitOps path every other change here goes through, for no good reason. Get the explicit merge go-ahead for this PR, same as any other.
+- **Fargate** rollouts of existing workloads have no IaC-level node resource to bump — triggering the rollout restart is a direct, imperative action with no PR step, so get an explicit go-ahead before running it.
 
 Whichever applies, summarize current cluster health first so the user is deciding with current information, not the state from an hour ago.
 
@@ -53,9 +52,8 @@ Whichever applies, summarize current cluster health first so the user is decidin
 
 Branch by compute type (recorded in the cluster config) — see `references/node-upgrade.md` for the exact commands and what "done" looks like for each. The shape of this step differs by type:
 
-- **Managed node groups (coupled)** — already set in motion by the Step 3 merge. Nothing to trigger; gather context beforehand (node count, batch size) and monitor the rollout against the health gates as it happens.
-- **Managed node groups (independently versioned)** — bump and merge per Step 4, then monitor the same way.
-- **Karpenter** — trigger replacement per Step 4's go-ahead if drift detection isn't already handling it, then monitor.
+- **Managed node groups (coupled) / Karpenter (AMI alias + working disruption budget)** — already set in motion by the Step 3 merge. Nothing to trigger; gather context beforehand (node count, batch size or disruption-budget rate) and monitor the rollout against the health gates as it happens.
+- **Managed node groups (independently versioned) / Karpenter (misconfigured)** — bump via IaC and merge per Step 4, then Karpenter's or the EKS API's own disruption mechanism takes it from there — monitor the same way as the automatic case.
 - **Fargate** — no persistent nodes; trigger a controlled rollout of Fargate-backed workloads per Step 4's go-ahead, then monitor.
 - **Mixed** — handle each pool according to its own type; don't apply managed-node-group logic to a Karpenter-managed pool or vice versa.
 

@@ -32,22 +32,30 @@ Either way, AWS handles the drain/cordon sequencing itself once the update is un
 
 ## Karpenter
 
-Karpenter does **not** automatically replace nodes just because the control plane's Kubernetes version changed. It provisions nodes from an EKS-optimized AMI referenced by the NodePool/EC2NodeClass, and only replaces existing nodes if something tells it to.
+Like managed node groups, this is usually automatic too — don't assume otherwise by default. When the EC2NodeClass references an AMI family/alias (rather than a pinned AMI ID), Karpenter's own drift detection notices the control-plane version change, marks existing nodeclaims `Drifted`, and replaces them itself — at whatever rate the NodePool's `spec.disruption.budgets` allows (e.g. 10% of nodes at a time is a common setting). That's the same kind of built-in, paced rollout as a managed node group's update, just driven by Karpenter's disruption controller instead of the EKS API. If that's how this cluster is set up, merging the Step 3 PR is what starts it — there's nothing further for this skill to trigger.
+
+Before the Step 3 PR gets merged, check and tell the user which case applies:
 
 ```bash
-# Check whether drift detection already flagged existing nodes
-kubectl get nodeclaims -o json | jq '.items[] | {name: .metadata.name, drifted: .status.conditions[] | select(.type=="Drifted")}'
-
-# If AMI drift isn't yet reflected (new AMI release may lag the control-plane version slightly),
-# confirm the EC2NodeClass is pointing at an AMI family/alias that will resolve to the target version
+# Confirm the EC2NodeClass resolves to a new AMI once the control plane moves
+# (an alias like al2023@latest will; a pinned AMI ID won't)
 kubectl get ec2nodeclass -o yaml
 
-# If nothing is drifting automatically, force replacement explicitly rather than waiting indefinitely:
-kubectl annotate node <node-name> karpenter.sh/do-not-disrupt-
-kubectl delete nodeclaim <nodeclaim-name>   # Karpenter provisions a replacement
+# Confirm disruption is actually enabled and at what rate
+kubectl get nodepool -o yaml | grep -A5 "disruption:"
 ```
 
-Replace nodes incrementally, not all at once — check pod health against the gates in `references/checkpoints.md` between batches, same as you would for a managed node group's rolling update. "Done" means no nodeclaims report drift and all nodes are on the target version.
+- **AMI alias + a nonzero disruption budget** (the common case): tell the user plainly that merging the control-plane PR will also set drift-based replacement in motion automatically, at the configured rate — their merge decision in Step 3 already covers this disruption. Once merged, just track it:
+
+  ```bash
+  kubectl get nodeclaims -o json | jq '.items[] | {name: .metadata.name, drifted: .status.conditions[] | select(.type=="Drifted")}'
+  ```
+
+  "Done" means no nodeclaims report drift and every node is on the target version.
+
+- **Pinned AMI ID, a zero/blocking disruption budget, or `do-not-disrupt` annotations present**: drift won't resolve on its own, and this cluster is supposed to be fully IaC/GitOps-managed — so the fix is an IaC change, the same way an independently-versioned managed node group gets one, not an imperative `kubectl delete nodeclaim`. Deleting a nodeclaim by hand bypasses the same GitOps path every other change in this skill goes through, for no good reason here: the underlying config (the NodePool's `disruption.budgets`, the EC2NodeClass's AMI selector, or a workload's `do-not-disrupt` annotation if that's what's blocking it) is ordinary IaC/manifest state, so fix *that*, open a PR, and get the same explicit merge go-ahead as Step 3. Once merged, Karpenter's own disruption controller takes it from there — same automatic, paced replacement as the common case above, just one PR later than it could have been.
+
+Either way, replace incrementally and check pod health against the gates in `references/checkpoints.md` between batches — don't let a loose disruption budget replace everything at once without checking in.
 
 ## Fargate
 
