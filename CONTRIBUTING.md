@@ -1,12 +1,13 @@
 # Contributing to Agentic AI Skills Library
 
-Thank you for your interest in contributing! This library provides shared AI agent rules and skills that propagate to all linked repositories via symlinks. Because of this design, changes here have a wide impact — so we appreciate careful, well-structured contributions.
+Thank you for your interest in contributing! This library provides shared AI agent rules and skills that propagate to all linked repositories via symlinks, and individual skills can also be installed directly as Claude Code plugins. Because of this design, changes here have a wide impact — so we appreciate careful, well-structured contributions.
 
 ## Table of Contents
 
 - [Getting Started](#getting-started)
 - [Types of Contributions](#types-of-contributions)
 - [Adding a New Skill](#adding-a-new-skill)
+- [Publishing a Skill as a Plugin](#publishing-a-skill-as-a-plugin)
 - [Adding a New Group](#adding-a-new-group)
 - [Modifying Rules](#modifying-rules)
 - [Conventions and Standards](#conventions-and-standards)
@@ -46,6 +47,7 @@ The pre-commit hook runs `scripts/generate-indexes.sh` automatically on every co
 | Script improvements | `scripts/` |
 | Documentation | `README.md`, `CONTRIBUTING.md` |
 | Bug fixes | Wherever the bug lives |
+| Plugin packaging for an existing skill | The skill's own directory + root `.claude-plugin/marketplace.json` |
 
 ## Adding a New Skill
 
@@ -92,6 +94,20 @@ All skills **must** be created using the `skill-creator` skill. This ensures con
 - **Group skills** (`groups/<group>/skills/`) — available only to repositories that opt into that group.
 
 Place a skill at the narrowest scope that makes sense. If only one group needs it, put it in that group. If multiple groups benefit, promote it to global.
+
+## Publishing a Skill as a Plugin
+
+Most skills only need the symlink-based install (`setup.sh`) covered above. Publish one as a standalone Claude Code **plugin** when you want it installable on its own, with no clone or fork required — e.g. `/plugin install <skill-name>` — or when it's broadly useful enough to submit to Anthropic's public plugin directory.
+
+1. Add the three files the [directory's pre-submission checklist](https://claude.com/docs/plugins/pre-submission-checklist) requires, directly inside the skill's own directory (this is the one exception to [What not to create](#what-not-to-create)):
+   - `.claude-plugin/plugin.json` — name, version, description, `license` (SPDX id), author.
+   - `README.md` — directory-facing copy, at least 40 words. Describe the skill for a human browsing a listing; don't restate `SKILL.md`'s instructions.
+   - `LICENSE` — a copy of this repo's license, unless the skill carries its own.
+2. Add an entry for it in the root [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) (`name`, `source` pointing at the skill's directory, `description`).
+3. Validate: `claude plugin validate <path/to/skill-directory>`.
+4. Add the install command to the skill's `README.md` and a line in the main `README.md`'s Available Skills table noting it's plugin-installable.
+5. Commit and push. Teammates can now self-serve install via `/plugin marketplace add <owner>/<repo>` without waiting on a directory review.
+6. Optional — for public distribution beyond this repo's own marketplace, submit it at `claude.ai/directory/manage` (web UI only; triggers Anthropic's automated scan and human review before listing).
 
 ## Adding a New Group
 
