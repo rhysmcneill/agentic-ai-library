@@ -27,7 +27,7 @@ Re-run the fast subset of prep's checks against current state — not the whole 
 
 ## Step 2: Backup
 
-Trigger a fresh on-demand backup before touching anything — every run, regardless of whether a recent one exists. See `references/backup.md` for the Velero and AWS Backup commands and how to confirm completion before moving on.
+Trigger a fresh on-demand backup before touching anything — every run, regardless of whether a recent one exists. See `references/backup.md` for the Velero and AWS Backup commands and how to confirm completion before moving on. If AWS Backup is in play, confirm the vault, IAM role, and retention period with the user (defaults are a starting suggestion, not something to apply silently) and persist them to the cluster config per `references/cluster-config.md` so later runs don't re-ask.
 
 Be precise with the user about what this backup buys them: it's workload and data recovery (restore into a new or the same cluster), **not** a way to undo the control-plane version bump — EKS does not support downgrading a cluster's Kubernetes version. If anything goes wrong after the control plane moves, the path forward is fixing forward or restoring workloads elsewhere, never rolling the control plane back.
 

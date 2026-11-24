@@ -29,12 +29,22 @@ A backup status of anything other than `Completed` (e.g. `PartiallyFailed`) need
 
 ## AWS Backup (for EBS volumes / resources Velero doesn't cover)
 
+This one has real parameters behind it — don't fill them with placeholders or silently assume defaults. Confirm all three with the user before the first run for a cluster, and save them to the cluster config (`backup:` block in `references/cluster-config.md`) so you're not re-asking every time:
+
+- **Vault** — which backup vault to target. If the config doesn't have one, list what exists (`aws backup list-backup-vaults`) and ask which to use, rather than guessing at a name.
+- **IAM role** — AWS Backup's own default service role (`arn:aws:iam::<account-id>:role/service-role/AWSBackupDefaultServiceRole`, created automatically the first time AWS Backup is used in the account) or a custom role. Ask which applies here; don't assume the default just because it's common.
+- **Retention** — how long to keep the backup before AWS Backup deletes it. Offer **35 days** as a sensible starting default if the user has no existing preference, but confirm it rather than silently applying it — retention has real cost and compliance implications that are this user's call, not yours.
+
 ```bash
-# If an on-demand backup job rather than a scheduled plan is what's needed:
+# Discover vaults if the config doesn't already name one
+aws backup list-backup-vaults --query 'BackupVaultList[].BackupVaultName'
+
+# Trigger an on-demand backup job with the confirmed parameters
 aws backup start-backup-job \
   --backup-vault-name <vault> \
   --resource-arn <ebs-volume-or-resource-arn> \
-  --iam-role-arn <backup-role-arn>
+  --iam-role-arn <backup-role-arn> \
+  --lifecycle DeleteAfterDays=<retention-days>
 
 # Poll until completed
 aws backup describe-backup-job --backup-job-id <job-id> --query 'State'
