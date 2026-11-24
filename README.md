@@ -1,352 +1,105 @@
 # Agentic AI Skills Library
 
-A centralized library of **shared** and **group-based** AI agent rules and skills. It provides consistent, layered instructions to AI agents (Antigravity/Gemini, Claude Code, Cursor, etc.) that can be applied to any repository. It acts as an orchestrator and skills are automatically propagated to all target repos through symlinks.
+A centralized library of **shared** and **group-based** AI agent rules and skills for Claude Code, Cursor, Antigravity, Codex, Copilot, and other AGENTS.md-aware tools. Skills and rules live here once and reach every repo that links to this library — no copy-pasting.
 
-> **Local-only by design.** Running `setup.sh` against a target repo installs rules and skills **locally on your machine** via symlinks. All managed files are automatically added to `.gitignore` — nothing is committed or pushed to version control in the target repo. Each developer runs the script once per repo; subsequent library updates propagate automatically through the symlinks.
+## Installing skills
 
-## Adopting This Library
+There are two ways to get a skill from this library, depending on what you need:
 
-This repo is designed to be **forked and customized**. The included groups (`backend`, `infrastructure`, `open-source-contrib`, `release`) are working examples — replace them with whatever makes sense for your organization.
+### A. Install one skill as a Claude Code plugin
 
-### Fork and customize
+For picking up a single public skill with no setup, no clone, no fork:
+
+```
+/plugin marketplace add rhysmcneill/agentic-ai-library
+/plugin install eks-upgrade-prep
+```
+
+Only skills listed in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) are installable this way — see [Publishing a skill as a plugin](CONTRIBUTING.md#publishing-a-skill-as-a-plugin) to add one. This is Claude Code only; other tools need Option B.
+
+### B. Link the whole library into a repo
+
+For your own fork, your team's shared rules, multiple groups, or non-Claude tools (Cursor, Codex, Antigravity, Copilot, Windsurf):
 
 ```bash
-# 1. Fork this repo on GitHub (or your git host)
-
-# 2. Clone your fork
 git clone <your-fork-url>
-cd agentic-ai-library
+scripts/setup.sh --target ../my-repo --group infrastructure
+```
 
-# 3. Customize the global baseline
-#    Edit global/AGENTS.md with your organization's shared rules
+This symlinks the global layer plus your chosen group(s) into `.agents/` in the target repo — **locally only**, gitignored automatically, nothing committed there. Tools that read `AGENTS.md` natively (Codex, Antigravity, Copilot) work immediately; others need `--ide`:
 
-# 4. Replace or modify groups
-#    Remove example groups you don't need:
+```bash
+scripts/setup.sh --target ../my-repo --group infrastructure --ide claude --ide cursor
+```
+
+| Flag | Tool | Why it's needed |
+|---|---|---|
+| *(none)* | Codex, Antigravity, Copilot | Read `AGENTS.md` natively |
+| `--ide claude` | Claude Code CLI | Needs skills explicit-imported in `CLAUDE.md` + `.claude/skills/` symlinks |
+| `--ide cursor` | Cursor | Discovers skills from `.cursor/skills/`, not `.agents/skills/` |
+| `--ide windsurf` | Windsurf | Reads `.windsurfrules`, not `AGENTS.md` |
+
+Repos spanning multiple domains can opt into several groups at once:
+
+```bash
+scripts/setup.sh --target ../my-monorepo --group backend --group infrastructure --group release
+```
+
+You never need to re-run `setup.sh` after the first time — updates pulled into this library propagate automatically through the symlinks. JetBrains (Junie) is configured manually: **Settings → Junie → Project Settings → Guidelines path** → point at the target repo's `AGENTS.md`.
+
+## Forking this library for your own org
+
+This repo is meant to be forked. The included groups (`backend`, `infrastructure`, `open-source-contrib`, `release`) are working examples — replace them with your own:
+
+```bash
+git clone <your-fork-url> && cd agentic-ai-library
+# Edit global/AGENTS.md with your baseline rules
 rm -rf groups/backend groups/infrastructure groups/open-source-contrib groups/release
-
-#    Add your own:
-mkdir -p groups/my-team/skills
-cp global/AGENTS.group-template.md groups/my-team/AGENTS.md
-#    Edit groups/my-team/AGENTS.md with your team's rules
-
-# 5. Update global/AGENTS.md to list your groups under "Available groups"
-
-# 6. Commit and push to your fork
+mkdir -p groups/my-team/skills && cp global/AGENTS.group-template.md groups/my-team/AGENTS.md
+# Edit groups/my-team/AGENTS.md, then list it under "Available groups" in global/AGENTS.md
 git config core.hooksPath .githooks
 git add . && git commit -m "feat: customize for our org" && git push
 ```
 
-Your fork is now the central skills library for your organization. Every member clones your fork and links it to their repos.
+To pull in upstream improvements later: `git remote add upstream <original-repo-url>`, then `git fetch upstream && git merge upstream/main`, resolving conflicts in `global/AGENTS.md`/`groups/` as needed.
 
-### Staying up to date with upstream
+## How it works
 
-To pull in improvements (new features, script fixes, skill-creator updates) from the upstream repo without losing your customizations:
+**Two layers**, loaded lowest-to-highest precedence:
 
-```bash
-# Add upstream as a remote (once)
-git remote add upstream <original-repo-url>
+| Layer | Scope | Contains |
+|---|---|---|
+| **Global** (`global/`) | Every repo | Baseline rules + universal skills (`skill-creator`) |
+| **Group** (`groups/<name>/`) | Repos that opt in via `--group` | Domain-specific rules and skills |
 
-# Fetch and merge upstream changes
-git fetch upstream
-git merge upstream/main
-# Resolve any conflicts in global/AGENTS.md or groups/ as needed
-```
+Full override precedence, nearest wins: `AGENTS.local.md` (personal) → repo root `AGENTS.md` → `groups/<group>/AGENTS.md` → `global/AGENTS.md`. Override a specific rule with `<!-- override: RULE-ID -->` above its replacement.
 
-## Quick Start
+A **group** is just any shared domain of expertise — `backend`/`infrastructure`/`release` for a company, `core`/`plugins` for an OSS project, `cs101`/`research` for a university department. Repo-specific rules that don't belong in any group go in that repo's own root `AGENTS.md` instead.
 
-### Using skills in your repos
-
-```bash
-# 1. Clone your library fork (once)
-git clone <your-fork-url>
-
-# 2. Connect a target repo to the library (once per repo)
-scripts/setup.sh --target ../my-repo --group infrastructure
-
-# 3. Add IDE-specific integrations (optional, repeatable)
-scripts/setup.sh --target ../my-repo --group infrastructure --ide cursor --ide claude
-
-# 4. Or connect with multiple groups (monorepos, multi-domain repos)
-scripts/setup.sh --target ../my-monorepo --group backend --group infrastructure
-```
-
-That's it. Your repo now has access to all global and selected group skills and rules. Tools that read `AGENTS.md` natively (Codex, Antigravity, Copilot) work out of the box. For tools that need their own config files (Cursor, Claude Code, Windsurf), use `--ide` to generate them. When someone adds new skills to the library, just `git pull` here — your repos update through the symlinks.
-
-### Creating a new skill
-
-```bash
-# 1. Clone your library fork and enable the pre-commit hook (once)
-git clone <your-fork-url>
-git config core.hooksPath .githooks
-
-# 2. Open the library in your IDE and ask your agent:
-#    "Create a new skill for [what it does]"
-#    The skill-creator skill guides you through the full process.
-
-# 3. Commit and push — the pre-commit hook updates the indexes automatically
-git add .
-git commit -m "feat: add new skill"
-git push
-```
-
-Every member who pulls the library will have the new skill available in their repos immediately — no action needed on their side.
-
-## Repository Structure
+## Repository structure
 
 ```
 agentic-ai-library/
-├── global/                       # Shared standards (applied to all repos)
-│   ├── AGENTS.md                 # Baseline rules: security, PRs, YAML
-│   ├── AGENTS.group-template.md  # Template for new groups
-│   ├── AGENTS.repo-template.md   # Template for new repo root AGENTS.md
-│   └── skills/                   # Shared skills (available to all groups)
-│       └── skill-creator/        # Skill for creating new skills
-├── groups/                       # All groups live here
-│   ├── backend/                  # Group: Backend services
-│   │   ├── AGENTS.md             # Backend services rules
-│   │   └── skills/               # Backend-specific skills
-│   │       ├── golang-api/       # Go API patterns skill
-│   │       └── golang-expert/    # Idiomatic Go: errors, concurrency, CLI, I/O, security
-│   ├── infrastructure/           # Group: Infrastructure
-│   │   ├── AGENTS.md             # Terramate, Helm, ArgoCD rules
-│   │   └── skills/               # Infra-specific skills
-│   │       ├── commit/           # Conventional Commits skill
-│   │       ├── create-pr/        # Create PRs for infra repos
-│   │       ├── repo-structure-review/ # Audit and improve repo layout
-│   │       ├── terraform-expert/ # 37 Terraform/IaC best-practice rules (sourced from Terramate)
-│   │       └── terramate-expert/ # Terramate CLI, Cloud, Catalyst, CI/CD rules (sourced from Terramate)
-│   ├── open-source-contrib/      # Group: Open-source contributions
-│   │   ├── AGENTS.md             # Open-source contribution rules
-│   │   └── skills/               # Open-source-specific skills
-│   │       ├── create-issue/     # Create issues following repo guidelines
-│   │       ├── create-pr/        # Submit pull requests to OSS repos
-│   │       ├── dev-env-setup/    # Set up development environments
-│   │       ├── repo-onboard/     # Onboard onto a new OSS repository
-│   │       └── repo-research/    # Research repos for contribution opportunities
-│   └── release/                  # Group: Release management
-│       └── AGENTS.md             # Semver, artifacts, changelog rules
-├── _generated/                   # Pre-built indexes per group (committed)
-│   ├── backend/
-│   │   ├── master-index.md       # Master config index for backend repos
-│   │   └── skills-index.md       # Skills catalog for backend repos
-│   └── infrastructure/
-│       ├── master-index.md       # Master config index for infra repos
-│       └── skills-index.md       # Skills catalog for infra repos
-├── .githooks/
-│   └── pre-commit                # Auto-regenerates _generated/ on commit
+├── global/                   # Applied to every repo
+│   ├── AGENTS.md             # Baseline rules
+│   └── skills/skill-creator/ # Skill for creating new skills
+├── groups/
+│   ├── backend/{AGENTS.md,skills/}
+│   ├── infrastructure/{AGENTS.md,skills/}       # e.g. eks-upgrade-prep, terraform-expert
+│   ├── open-source-contrib/{AGENTS.md,skills/}
+│   └── release/AGENTS.md
+├── _generated/                # Committed, pre-built indexes — never hand-edit
+├── .claude-plugin/
+│   └── marketplace.json       # Lists skills installable via /plugin install
+├── .githooks/pre-commit       # Regenerates _generated/ on every commit
 └── scripts/
-    ├── setup.sh                  # One-time local setup for target repos
-    └── generate-indexes.sh       # Rebuild _generated/ when skills/groups change
+    ├── setup.sh               # Symlink this library into a target repo
+    └── generate-indexes.sh    # Rebuild _generated/ manually
 ```
 
-## How It Works
+## Contributing
 
-### Two Layers of Skills and Rules
-
-| Layer | Scope | What it contains |
-|---|---|---|
-| **Global** (`global/`) | All repositories | Baseline rules (security, PRs, validation) and universal skills (e.g., `skill-creator`) |
-| **Group** (`groups/backend/`, `groups/infrastructure/`, …) | Repositories that opt in via `--group` | Domain-specific rules and skills (e.g., Conventional Commits for Infrastructure) |
-
-When you run `setup.sh`, the global layer and your chosen group layer(s) are symlinked into the target repo. The agent sees them as local files and loads them automatically. Updates to skills and rules in this library propagate through those symlinks — no re-running required.
-
-### Multi-Group Support
-
-A repository can opt into **multiple groups** simultaneously. This is essential for monorepos or projects that span multiple domains:
-
-```bash
-# A monorepo with Go backend, React frontend, and Dockerfiles
-scripts/setup.sh --target ../my-monorepo \
-  --group backend \
-  --group frontend \
-  --group infrastructure
-```
-
-When multiple groups are selected, `setup.sh` generates a composite index that references all selected groups. Each group's rules and skills are loaded in the order specified.
-
-### What is a Group?
-
-A group is **any shared collection of rules and skills** that applies to one or more repositories. Groups are intentionally generic — they can represent whatever organizational unit makes sense for your context:
-
-| Adopter | `global/` represents | Example `groups/` |
-|---|---|---|
-| **Company** | Company-wide standards | `backend/`, `frontend/`, `infrastructure/`, `release/` |
-| **OSS project** | Project-wide conventions | `core/`, `plugins/`, `documentation/` |
-| **University** | Department standards | `cs101/`, `research/`, `grad-students/` |
-| **Team-of-teams** | Program-level rules | `platform/`, `platform-backend/`, `platform-frontend/` |
-| **Solo developer** | Personal baseline | `golang/`, `python/`, `devops/` |
-
-Groups answer: *"What shared domain expertise does this repo need?"*
-
-Project-specific rules that apply to only one repo belong in the repo's own `AGENTS.md` (Layer 2 in the override hierarchy), not in a group.
-
-### Override Hierarchy
-
-Rules follow a **"Nearest First"** precedence. The agent loads files from lowest to highest precedence, with later rules taking effect over earlier ones:
-
-| Precedence | Scope | AGENTS Layer | SKILL Layer |
-|---|---|---|---|
-| **1 (Highest)** | Local | `AGENTS.local.md` | Personal `SKILL.md` |
-| **2** | Repo | Root `/AGENTS.md` | `.agents/skills/*.md` |
-| **3** | Group | `library/groups/[group]/AGENTS.md` | `library/groups/[group]/skills/*.md` |
-| **4 (Lowest)** | Global | `library/global/AGENTS.md` | `library/global/skills/*.md` |
-
-### Overriding a Rule
-
-Each rule has a unique ID (e.g., `GBL-001`, `INFRA-001`). To override a rule at a lower-precedence level, use the `<!-- override: RULE-ID -->` comment above the replacement:
-
-```markdown
-<!-- override: GBL-001 -->
-1. My group-specific replacement for this rule.
-```
-
-## Local Setup (run once per repo)
-
-Run `setup.sh` to install this library into any target repository. The script creates **local symlinks only** — it never commits, pushes, or modifies version-controlled files.
-
-```bash
-# Single group
-scripts/setup.sh --target ../my-repo --group infrastructure
-
-# Multiple groups
-scripts/setup.sh --target ../my-monorepo --group backend --group infrastructure --group release
-
-# With IDE integrations
-scripts/setup.sh --target ../my-repo --group infrastructure --ide cursor --ide claude
-```
-
-What the script does:
-
-1.  **Symlinks rules** into `.agents/rules/` (global + all selected group AGENTS.md files).
-2.  **Symlinks skills** into `.agents/skills/` (global + all selected group skill directories).
-3.  **Generates composite indexes** (master index + skills catalog covering all selected groups).
-4.  **Updates the root `AGENTS.md`** to point to the master index, keeping the root clean.
-5.  **Adds `.agents/` to `.gitignore`** so nothing leaks into version control.
-6.  **IDE integrations** (when `--ide` is specified) — generates tool-specific config files.
-
-Because rules and skills are symlinked back to this library, updates you pull here propagate to all your target repos automatically. **You never need to re-run `setup.sh`** after the initial setup (unless you want to add or remove groups).
-
-### Generated Project Structure (local, gitignored)
-
-```text
-my-repo/
-├── AGENTS.md                          ← Root entry point (works for Codex, Antigravity, Copilot)
-├── CLAUDE.md                          ← (--ide claude) rules + explicit skill @-imports for Claude Code
-├── .windsurfrules                     ← (--ide windsurf) symlink to AGENTS.md
-├── .claude/                           ← (--ide claude) gitignored
-│   └── skills/
-│       ├── global-links/              → symlink to library/global/skills/
-│       └── infrastructure-links/      → symlink to library/groups/infrastructure/skills/
-├── .cursor/
-│   └── skills/                        ← (--ide cursor) skill symlinks for Cursor discovery
-│       ├── global-links/              → symlink to library/global/skills/
-│       └── infrastructure-links/      → symlink to library/groups/infrastructure/skills/
-└── .agents/                           ← Entire directory is gitignored
-    ├── AGENTS.md                      ← Generated composite master index
-    ├── rules/
-    │   ├── agents-global-link         → symlink to library/global/AGENTS.md
-    │   └── agents-infrastructure-link → symlink to library/groups/infrastructure/AGENTS.md
-    └── skills/
-        ├── AGENTS.md                  ← Generated composite skills catalog
-        ├── global-links/              → symlink to library/global/skills/
-        └── infrastructure-links/      → symlink to library/groups/infrastructure/skills/
-```
-
-Files marked with `(--ide ...)` are only created when the corresponding flag is passed.
-
-After setup, customise your repo-level rules at the bottom of the root `AGENTS.md`.
-
-## Updating the Library (for contributors)
-
-When you add or remove a skill or group, the `_generated/` indexes need to be rebuilt. A **pre-commit hook** handles this automatically — just commit as normal and the indexes are regenerated and staged for you.
-
-### First-time setup (once per clone)
-
-Enable the hook by pointing git to the committed `.githooks/` directory:
-
-```bash
-git config core.hooksPath .githooks
-```
-
-After this, every commit will automatically run `generate-indexes.sh` and include the updated `_generated/` files. No manual steps needed.
-
-### Manual regeneration
-
-If you need to regenerate indexes outside of a commit (e.g., to inspect the output):
-
-```bash
-scripts/generate-indexes.sh
-```
-
-## IDE and Tool Compatibility
-
-> [!NOTE]
-> **Actively maintained IDE integrations:** `--ide claude` (Claude Code CLI) and `--ide cursor` (Cursor) are the primary supported targets. Windsurf (`--ide windsurf`) remains available but is not a current focus. Additional IDEs and AI tools will be added in future releases, each following their own native conventions.
-
-### Works out of the box (no `--ide` needed)
-
-These tools natively read `AGENTS.md` from the project root. No extra flags required:
-
-| Tool | How it loads rules | How it loads skills |
-|---|---|---|
-| **Codex (OpenAI)** | Reads `AGENTS.md` at project root and up the directory tree | Via `AGENTS.md` references |
-| **Antigravity (Google)** | Reads `AGENTS.md` at project root | Via `AGENTS.md` references |
-| **GitHub Copilot** | Reads `AGENTS.md` as an agent instruction file | Via `AGENTS.md` references |
-
-### Needs `--ide` flag
-
-These tools use their own config files. Pass `--ide <name>` to `setup.sh` to generate them:
-
-| Flag | Tool | What it creates | Why |
-|---|---|---|---|
-| `--ide claude` | Claude Code CLI | `CLAUDE.md` with explicit `@`-imports for rules and every skill + `.claude/skills/` symlinks | Claude needs skills explicitly listed in `CLAUDE.md` to load them into context |
-| `--ide cursor` | Cursor | `.cursor/skills/` with symlinks to skill directories | Cursor discovers skills from `.cursor/skills/`; `.agents/skills/` is unreliable |
-| `--ide windsurf` | Windsurf | `.windsurfrules` symlink to `AGENTS.md` | Windsurf reads `.windsurfrules`, not `AGENTS.md` |
-
-All generated files are added to `.gitignore` automatically — nothing leaks into version control.
-
-```bash
-# Claude Code + Cursor
-scripts/setup.sh --target ../my-repo --group infrastructure --ide claude --ide cursor
-
-# Windsurf only
-scripts/setup.sh --target ../my-repo --group infrastructure --ide windsurf
-```
-
-### Manual configuration
-
-#### JetBrains (Junie)
-
-Go to **Settings** → **Junie** → **Project Settings** → **Guidelines path** and point it to the `AGENTS.md` file in your repository root.
-
-#### Other tools
-
-If your tool does not auto-load `AGENTS.md`, configure it with these instructions (as a "Custom Instruction" or "System Prompt"):
-
-> - Before executing any request, locate and parse the `AGENTS.md` file in the repository root (or the closest parent directory). This file serves as your **Primary Context Authority**.
-> - Resolve and load the content of the referenced Markdown files recursively to build a complete context tree.
-> - Never load the same physical file more than once.
-> - Immediately skip any circular references to prevent infinite recursion.
-
-## Adding a New Group
-
-1. Create a new directory: `mkdir -p groups/[group]/skills`
-2. Copy the group template: `cp global/AGENTS.group-template.md groups/[group]/AGENTS.md`
-3. Edit `groups/[group]/AGENTS.md` — replace the `[GROUP]-` prefix with your group name (e.g., `FRONTEND-`, `GOLANG-`, `QA-`).
-4. Update `global/AGENTS.md` to list the new group under **Available groups**.
-5. Commit — the pre-commit hook regenerates `_generated/` automatically.
-
-Groups can represent anything: teams, language stacks, projects, or organizational units. See [What is a Group?](#what-is-a-group) for examples.
-
-## Adding a New Skill
-
-All new skills must be created using the **`skill-creator`** skill ([`global/skills/skill-creator/`](global/skills/skill-creator/SKILL.md)). Open this library in your IDE and ask your agent:
-
-> "Create a new skill for [what it does]"
-
-The skill-creator guides the full authoring process: gathering requirements, choosing the right complexity tier, writing the SKILL.md with correct frontmatter, and validation. It enforces the [Agent Skills Specification](https://agentskills.io/specification) and places the skill in the correct group directory.
-
-Commit when done — the pre-commit hook regenerates `_generated/` automatically.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for adding a skill, adding a group, modifying rules, and publishing a skill as a plugin.
 
 ## Available Skills
 
@@ -357,7 +110,7 @@ Commit when done — the pre-commit hook regenerates `_generated/` automatically
 | [`create-pr`](groups/infrastructure/skills/create-pr/SKILL.md) | `infrastructure` | Creates pull requests for infrastructure repos with Terramate, Helm, Terraform, and ArgoCD validation. |
 | [`create-pr`](groups/open-source-contrib/skills/create-pr/SKILL.md) | `open-source-contrib` | Submits pull requests to OSS repositories following contribution guidelines, PR templates, and CI requirements. |
 | [`dev-env-setup`](groups/open-source-contrib/skills/dev-env-setup/SKILL.md) | `open-source-contrib` | Sets up development environments for OSS repositories. |
-| [`eks-upgrade-prep`](groups/infrastructure/skills/eks-upgrade-prep/SKILL.md) | `infrastructure` | Read-only readiness audit before an EKS version upgrade: deprecated API usage, PDB/drain blockers, EKS Upgrade Insights, and compatibility research for every addon and in-cluster controller against the target Kubernetes version. Produces a severity-rated, go/no-go report. |
+| [`eks-upgrade-prep`](groups/infrastructure/skills/eks-upgrade-prep/SKILL.md) | `infrastructure` | Read-only readiness audit before an EKS version upgrade: deprecated API usage, PDB/drain blockers, EKS Upgrade Insights, and compatibility research for every addon and in-cluster controller against the target Kubernetes version. Produces a severity-rated, go/no-go report. Also installable directly as a plugin — see [Installing skills](#a-install-one-skill-as-a-claude-code-plugin). |
 | [`golang-api`](groups/backend/skills/golang-api/SKILL.md) | `backend` | Enforces Go API best practices for project structure, handlers, error handling, middleware, and testing. |
 | [`golang-expert`](groups/backend/skills/golang-expert/SKILL.md) | `backend` | Idiomatic Go best practices covering code organisation, error handling, security, interfaces, concurrency, CLI tool creation, file I/O, raw strings, testing, and tooling. 47 rules across 10 categories with local reference files. |
 | [`repo-onboard`](groups/open-source-contrib/skills/repo-onboard/SKILL.md) | `open-source-contrib` | Onboards onto a new OSS repository by reading documentation, understanding structure, and summarising how to contribute. |
@@ -366,11 +119,3 @@ Commit when done — the pre-commit hook regenerates `_generated/` automatically
 | [`skill-creator`](global/skills/skill-creator/SKILL.md) | `global` | Guides agents through creating a new skill following the agentskills.io standard. |
 | [`terraform-expert`](groups/infrastructure/skills/terraform-expert/SKILL.md) | `infrastructure` | Terraform and IaC optimization guidelines covering 37 rules across 10 categories (state, security, modules, variables, testing, and more). Sourced from [terramate-io/agent-skills](https://github.com/terramate-io/agent-skills). |
 | [`terramate-expert`](groups/infrastructure/skills/terramate-expert/SKILL.md) | `infrastructure` | Terramate CLI, Cloud, and Catalyst best practices covering stack management, orchestration, code generation, CI/CD, and drift reconciliation. Sourced from [terramate-io/agent-skills](https://github.com/terramate-io/agent-skills). |
-
-## Standards
-
-- `AGENTS.md` files must stay **under 200 lines**.
-- Use `SKILL.md` files for complex, multi-step workflows rather than packing rules into AGENTS.md.
-- Skills must follow the [Agent Skills Specification](https://agentskills.io/specification).
-- Agent-focused header files follow the [agents.md](https://agents.md/) standard.
-- Large code snippets go in a sibling `/examples` folder, not inline.
