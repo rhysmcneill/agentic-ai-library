@@ -1,0 +1,24 @@
+{
+  "name": "eks-upgrade-prep",
+  "displayName": "EKS Upgrade Prep",
+  "version": "1.0.0",
+  "description": "Read-only readiness audit before an Amazon EKS cluster version upgrade: deprecated API usage, PDB/drain blockers, EKS Upgrade Insights, and compatibility research for every addon and in-cluster controller against the target Kubernetes version. Produces a severity-rated, go/no-go findings report.",
+  "author": {
+    "name": "rhysmcneill",
+    "url": "https://github.com/rhysmcneill"
+  },
+  "homepage": "https://github.com/rhysmcneill/agentic-ai-library/tree/main/groups/infrastructure/skills/eks-upgrade-prep",
+  "repository": "https://github.com/rhysmcneill/agentic-ai-library",
+  "license": "Apache-2.0",
+  "keywords": [
+    "eks",
+    "kubernetes",
+    "aws",
+    "upgrade",
+    "infrastructure",
+    "devops",
+    "iac",
+    "terraform",
+    "terramate"
+  ]
+}
