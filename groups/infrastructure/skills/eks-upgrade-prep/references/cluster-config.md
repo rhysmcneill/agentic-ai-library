@@ -28,11 +28,16 @@ compute:
 reference_environment:
   cluster_name: payments-staging
   config_path: .eks-upgrade/payments-staging.yaml
+
+# Written after the report is produced (see "Write the report" below) — this is how
+# eks-upgrade-execute finds it later, including when the path isn't the default one.
+report_path: ./eks-upgrade/payments-prod-1.34-to-1.35-prep.md
 ```
 
 ## Notes
 
 - `iac.tool` determines which syntax patterns to grep for when confirming the current version live — see the "Locating version fields by IaC tool" section in `references/checks.md`.
+- `report_path` won't exist yet the first time you write this file for a cluster (you haven't produced the report yet at that point) — add it once the report's actually written, not before.
 - `addon_keys` only needs entries for addons actually managed in this repo's IaC. Don't invent keys for addons that aren't present — note their absence in the report instead (e.g. if there's no EFS CSI driver, say so, don't pad the config).
 - If the user can't immediately tell you all of this (common for a cluster inherited from someone else), it's fine to go find it yourself by grepping the IaC repo for the current version string (e.g. `grep -rn "eks_cluster_version\|cluster_version\|kubernetes_version" .`) and confirming with `aws eks describe-cluster` — then show the user what you found before writing the config, since the point of the file is accuracy, not just having one.
 - Treat this file like any other repo file: if it already exists, read it before editing it, and keep it in sync if the IaC paths move.
