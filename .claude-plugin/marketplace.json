@@ -12,6 +12,13 @@
       "description": "Read-only readiness audit before an Amazon EKS cluster version upgrade — deprecated APIs, PDB/drain blockers, EKS Upgrade Insights, and addon/controller compatibility research, with a severity-rated go/no-go report.",
       "category": "infrastructure",
       "tags": ["eks", "kubernetes", "aws", "terraform", "terramate"]
+    },
+    {
+      "name": "eks-upgrade-execute",
+      "source": "./groups/infrastructure/skills/eks-upgrade-execute",
+      "description": "Executes an already-prepared Amazon EKS cluster version upgrade through IaC/CI—backup, control-plane PR, compute-type-aware node upgrade with health gates, addon PR—with a human approving every merge and every node-disruptive step.",
+      "category": "infrastructure",
+      "tags": ["eks", "kubernetes", "aws", "terraform", "terramate", "karpenter"]
     }
   ]
 }

@@ -85,7 +85,7 @@ agentic-ai-library/
 │   └── skills/skill-creator/ # Skill for creating new skills
 ├── groups/
 │   ├── backend/{AGENTS.md,skills/}
-│   ├── infrastructure/{AGENTS.md,skills/}       # e.g. eks-upgrade-prep, terraform-expert
+│   ├── infrastructure/{AGENTS.md,skills/}       # e.g. eks-upgrade-prep, eks-upgrade-execute, terraform-expert
 │   ├── open-source-contrib/{AGENTS.md,skills/}
 │   ├── release/AGENTS.md
 │   └── security/{AGENTS.md,skills/}             # e.g. bug-bounty, bb-recon, bb-vuln-analysis
@@ -111,6 +111,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for adding a skill, adding a group, mod
 | [`create-pr`](groups/infrastructure/skills/create-pr/SKILL.md) | `infrastructure` | Creates pull requests for infrastructure repos with Terramate, Helm, Terraform, and ArgoCD validation. |
 | [`create-pr`](groups/open-source-contrib/skills/create-pr/SKILL.md) | `open-source-contrib` | Submits pull requests to OSS repositories following contribution guidelines, PR templates, and CI requirements. |
 | [`dev-env-setup`](groups/open-source-contrib/skills/dev-env-setup/SKILL.md) | `open-source-contrib` | Sets up development environments for OSS repositories. |
+| [`eks-upgrade-execute`](groups/infrastructure/skills/eks-upgrade-execute/SKILL.md) | `infrastructure` | Executes an already-prepared EKS upgrade through IaC/CI: fresh backup, control-plane version bump PR, compute-type-aware node upgrade (managed node groups / Karpenter / Fargate) with health gates, then an addon version bump PR. A human approves every merge and every node-disruptive step; requires a go/no-go report from `eks-upgrade-prep` first. Also installable directly as a plugin — see [Installing skills](#a-install-one-skill-as-a-claude-code-plugin). |
 | [`eks-upgrade-prep`](groups/infrastructure/skills/eks-upgrade-prep/SKILL.md) | `infrastructure` | Read-only readiness audit before an EKS version upgrade: deprecated API usage, PDB/drain blockers, EKS Upgrade Insights, and compatibility research for every addon and in-cluster controller against the target Kubernetes version. Produces a severity-rated, go/no-go report. Also installable directly as a plugin — see [Installing skills](#a-install-one-skill-as-a-claude-code-plugin). |
 | [`golang-api`](groups/backend/skills/golang-api/SKILL.md) | `backend` | Enforces Go API best practices for project structure, handlers, error handling, middleware, and testing. |
 | [`golang-expert`](groups/backend/skills/golang-expert/SKILL.md) | `backend` | Idiomatic Go best practices covering code organisation, error handling, security, interfaces, concurrency, CLI tool creation, file I/O, raw strings, testing, and tooling. 47 rules across 10 categories with local reference files. |
