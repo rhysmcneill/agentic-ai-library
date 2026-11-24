@@ -1,6 +1,6 @@
 ---
 name: eks-upgrade-execute
-description: Executes an already-prepared Amazon EKS cluster version upgrade through IaC and CI/CD, with a human approving every PR merge and every node-disruptive step — never autonomous, never skips a checkpoint. Takes a fresh backup (Velero/AWS Backup), bumps the EKS control-plane version via IaC and opens a PR, waits for human merge, upgrades worker nodes with compute-type-aware logic (managed node groups vs. Karpenter vs. Fargate), runs automated health gates with predefined abort thresholds, then bumps addon versions via a second PR, again waiting for human merge. Requires a go/no-go readiness report from the eks-upgrade-prep skill first — refuses to proceed without one, or if it says no-go. Use whenever the user wants to actually carry out, run, kick off, or execute an EKS Kubernetes version upgrade (as opposed to just preparing/auditing for one). Never merges a pull request, never bypasses a required human checkpoint, and never attempts a control-plane downgrade (EKS doesn't support that) — only forward fixes.
+description: Executes an already-prepared Amazon EKS cluster version upgrade through IaC and CI/CD, with a human approving every PR merge and every node-disruptive step. Takes a fresh backup (Velero/AWS Backup), bumps the EKS control-plane version via IaC and opens a PR (flagging beforehand whether that merge also triggers node replacement for a coupled managed node group), handles Karpenter/independent-node-group/Fargate node upgrades with their own trigger and go-ahead, runs automated health gates with predefined abort thresholds, then bumps addon versions via a second PR. Requires a go/no-go report from eks-upgrade-prep first; refuses to proceed without one or if it says no-go. Use whenever the user wants to carry out, run, kick off, or execute an EKS Kubernetes version upgrade (as opposed to just preparing/auditing for one). Never merges a PR, never skips a checkpoint, never attempts a control-plane downgrade (not supported by EKS) — only forward fixes.
 metadata:
   version: "1.0.0"
 ---
@@ -34,24 +34,32 @@ Be precise with the user about what this backup buys them: it's workload and dat
 ## Step 3: Control-plane version bump
 
 1. Locate the version field using the path recorded in the cluster config (see `references/cluster-config.md` if you need to re-derive it).
-2. Edit it to the target version, open a PR with a clear description (what's changing, link to the prep report), and **stop**.
-3. Tell the user the PR is ready and that you need them to review and merge it — then wait. Don't poll aggressively; ask them to let you know once it's merged, or check back at a reasonable interval.
-4. Once merged, confirm the CI/CD pipeline actually ran and the control plane reports the target version (`aws eks describe-cluster`) before moving on.
+2. Before opening the PR, check whether node replacement rides along with this same change (see `references/node-upgrade.md` — for managed node groups, this is usually true: their version/AMI release is commonly tied to the same variable as the control-plane version, so one apply does both). Tell the user plainly which is the case for this cluster, so their merge decision in the next step already accounts for whether it also disrupts nodes — don't let that surface as a surprise after the fact.
+3. Edit the version field, open a PR with a clear description (what's changing, whether it also triggers node replacement, link to the prep report), and **stop**.
+4. Tell the user the PR is ready and that you need them to review and merge it — then wait. Don't poll aggressively; ask them to let you know once it's merged, or check back at a reasonable interval.
+5. Once merged, confirm the CI/CD pipeline actually ran and the control plane reports the target version (`aws eks describe-cluster`) before moving on.
 
-## Step 4: Checkpoint — confirm before touching nodes
+## Step 4: Checkpoint — confirm before anything that disrupts nodes
 
-Worker node replacement is the step that actually disrupts running pods. Even though the control-plane PR is already merged, get an explicit, separate go-ahead from the user before triggering it — summarize current cluster health first so they're deciding with current information, not the state from an hour ago.
+This gate only applies to whatever actually requires *this skill* to take an action that disrupts nodes — it is not a blanket pause after every merge, because for a coupled managed node group the disruption already started automatically the moment the human merged the Step 3 PR (and that merge was already their go-ahead for it, per Step 3.2). Where it does apply:
 
-## Step 5: Worker node upgrade
+- **Karpenter** doesn't replace nodes on its own just because the control plane moved — triggering that replacement is this skill's own action, so get an explicit, separate go-ahead before doing it.
+- **An independently-versioned managed node group** (not coupled to the cluster version) needs its own IaC bump and PR, same as Step 3 — that's a second merge decision, not an automatic continuation.
+- **Fargate** rollouts of existing workloads are also this skill's own triggered action, not automatic.
 
-Branch by compute type (recorded in the cluster config) — see `references/node-upgrade.md` for the exact commands and what "done" looks like for each:
+Whichever applies, summarize current cluster health first so the user is deciding with current information, not the state from an hour ago.
 
-- **Managed node groups** — trigger the node group version update and track its progress.
-- **Karpenter** — check for drift detection/consolidation already handling it; if not, trigger replacement explicitly. Don't assume it happens on its own just because the control plane moved.
-- **Fargate** — no persistent nodes to replace, but existing pods keep running under the old version context until rescheduled; trigger a controlled rollout of Fargate-backed workloads.
-- **Mixed** — handle each piece according to its own type; don't apply managed-node-group logic to a Karpenter-managed pool or vice versa.
+## Step 5: Worker node rollout — context, then monitor
 
-Monitor against the health gates and abort thresholds in `references/checkpoints.md` throughout. If a threshold is breached, **stop and escalate to the user — don't try to self-correct or push through.** There's no automatic rollback available here (see Step 2); the only way out of a bad state is a human deciding the next move with full information.
+Branch by compute type (recorded in the cluster config) — see `references/node-upgrade.md` for the exact commands and what "done" looks like for each. The shape of this step differs by type:
+
+- **Managed node groups (coupled)** — already set in motion by the Step 3 merge. Nothing to trigger; gather context beforehand (node count, batch size) and monitor the rollout against the health gates as it happens.
+- **Managed node groups (independently versioned)** — bump and merge per Step 4, then monitor the same way.
+- **Karpenter** — trigger replacement per Step 4's go-ahead if drift detection isn't already handling it, then monitor.
+- **Fargate** — no persistent nodes; trigger a controlled rollout of Fargate-backed workloads per Step 4's go-ahead, then monitor.
+- **Mixed** — handle each pool according to its own type; don't apply managed-node-group logic to a Karpenter-managed pool or vice versa.
+
+Monitor against the health gates and abort thresholds in `references/checkpoints.md` throughout, whether or not you were the one who triggered the rollout. If a threshold is breached, **stop and escalate to the user — don't try to self-correct or push through.** There's no automatic rollback available here (see Step 2); the only way out of a bad state is a human deciding the next move with full information.
 
 ## Step 6: Addon version bump
 

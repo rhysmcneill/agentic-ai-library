@@ -4,18 +4,31 @@ This is the step the parent story behind this skill specifically flagged as unde
 
 ## Managed node groups
 
-The version bump usually isn't automatic just because the control plane moved — managed node groups can intentionally trail the control plane by up to one minor version.
+In a properly configured IaC setup, the node group's version/AMI release is tied to the same variable as the control-plane version (or to a Terraform/Terramate module that does this for you). That means merging the Step 3 PR already started the replacement — AWS handles draining old nodes and bringing up new ones as part of that same apply. There's nothing for this skill to separately trigger here; the job is to gather context before it starts, then watch it happen.
+
+Before the Step 3 PR gets merged, check and tell the user:
 
 ```bash
-# Trigger the update (if not already driven by the same IaC change as the control plane)
-aws eks update-nodegroup-version --cluster-name <cluster> --nodegroup-name <nodegroup>
+# Confirm the node group's version is actually coupled to the cluster version in this IaC,
+# not pinned independently — this determines whether merging Step 3 starts the node rollout too
+grep -n "version\|ami_release" <node-group IaC file>
 
-# Track progress
-aws eks describe-update --name <cluster> --nodegroup-name <nodegroup> --update-id <update-id> \
-  --query 'update.{status:status,errors:errors}'
+aws eks describe-nodegroup --cluster-name <cluster> --nodegroup-name <nodegroup> \
+  --query 'nodegroup.{version:version,amiReleaseVersion:releaseVersion}'
 ```
 
-This performs a managed rolling replacement — AWS handles the drain/cordon sequencing. Your job is to watch it, not drive each node individually. "Done" means `describe-update` reports `Successful` and every node in the group reports the target version (`kubectl get nodes -o wide`).
+- **Coupled to the cluster version** (the common case): tell the user plainly that merging the control-plane PR will also kick off the node group's rolling replacement in the same apply — their merge decision in Step 3 already covers this disruption, there's no separate action later to gate. Once merged, just track it:
+
+  ```bash
+  aws eks describe-update --name <cluster> --nodegroup-name <nodegroup> --update-id <update-id> \
+    --query 'update.{status:status,errors:errors}'
+  ```
+
+  "Done" means `describe-update` reports `Successful` and every node in the group reports the target version (`kubectl get nodes -o wide`).
+
+- **Pinned independently** (its own version field, not derived from the cluster version): this needs its own IaC edit and PR, exactly like Step 3 — bump it, open a PR, and get a separate explicit merge from the user before it starts. Never bypass IaC by calling `aws eks update-nodegroup-version` directly; that would change live state out from under the next `terraform plan`/`terramate run` and cause drift.
+
+Either way, AWS handles the drain/cordon sequencing itself once the update is underway — your job is to watch it against the gates in `references/checkpoints.md`, not drive individual nodes.
 
 ## Karpenter
 
