@@ -57,6 +57,8 @@ Write a single local markdown file (don't try to push it to Confluence or anywhe
 
 Lead the report with a clear **go / no-go / go-with-conditions** recommendation and the list of anything Critical or High that needs resolving first — don't bury the verdict under the raw findings. Everything below that is the evidence for how you got there.
 
+Once it's written, record its path in `report_path` in `.eks-upgrade/<cluster-name>.yaml` (see `references/cluster-config.md`) — this is how `eks-upgrade-execute` finds the report later, including when the user chose a non-default path. Don't skip this just because the default path is predictable; a later run shouldn't have to guess.
+
 ## When you're done
 
 Tell the user where the report landed, summarize the verdict and any Critical/High items in a couple of sentences, and stop. Don't propose opening tickets, editing IaC, or triggering CI yourself — flag that those are the logical next step and let the human (or the execution skill, once it exists) take it from here.
