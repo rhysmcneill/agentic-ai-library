@@ -49,8 +49,18 @@ agentic-ai-library/
 │   │       ├── dev-env-setup/    # Set up development environments
 │   │       ├── repo-onboard/     # Onboard onto a new OSS repository
 │   │       └── repo-research/    # Research repos for contribution opportunities
-│   └── release/                  # Group domain (Release: semver, artifacts, changelog)
-│       └── AGENTS.md             # RELEASE-* rules
+│   ├── release/                  # Group domain (Release: semver, artifacts, changelog)
+│   │   └── AGENTS.md             # RELEASE-* rules
+│   └── security/                 # Group domain (Bug bounty and security research)
+│       ├── AGENTS.md             # SEC-* rules
+│       └── skills/
+│           ├── bug-bounty/       # Session coordinator — authorization context and phase routing
+│           ├── bb-program-research/ # Evaluate a program before committing time to it
+│           ├── bb-recon/         # Cloud-first attack surface discovery
+│           ├── bb-secrets-hunting/  # GitHub, npm, Docker, CI/CD credential leaks
+│           ├── bb-vuln-analysis/ # SSRF, S3, IAM, subdomain takeover, DNS, IDOR
+│           ├── bb-api-testing/   # JWT, GraphQL, BOLA, mass assignment
+│           └── bb-report-writer/ # HackerOne/Bugcrowd/Intigriti report drafting
 ├── _generated/                   # Pre-built indexes per group (committed)
 │   ├── backend/
 │   │   ├── master-index.md       # Master config index for backend repos
@@ -73,6 +83,7 @@ agentic-ai-library/
 - `INFRA-NNN` — infra group rules (`groups/infrastructure/AGENTS.md`)
 - `open-source-NNN` — open-source contribution rules (`groups/open-source-contrib/AGENTS.md`)
 - `RELEASE-NNN` — release group rules (`groups/release/AGENTS.md`)
+- `SEC-NNN` — security group rules (`groups/security/AGENTS.md`)
 - `REPO-NNN` — rules specific to this library repo
 
 ### Skill Locations
