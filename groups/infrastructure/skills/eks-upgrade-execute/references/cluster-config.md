@@ -27,18 +27,23 @@ reference_environment:
   cluster_name: payments-staging
   config_path: .eks-upgrade/payments-staging.yaml
 
+# Written by eks-upgrade-prep after producing the report. Absent entirely on configs written
+# before this field existed — that's a "fall back to the default path" case, not a missing report.
+report_path: ./eks-upgrade/payments-prod-1.34-to-1.35-prep.md
+
 # Added and maintained by eks-upgrade-execute itself — eks-upgrade-prep never writes this block,
 # so expect it to be missing the first time this skill runs for a given cluster.
 backup:
   aws_backup_vault: null       # vault name, or null if not yet confirmed with the user
   aws_backup_role_arn: null    # a specific role ARN, or null to use AWS Backup's default service role
-  retention_days: 35           # starting default — confirm with the user, don't apply silently
+  retention_days: null         # null until confirmed with the user — 35 is a suggested starting point, not a default to apply silently
 ```
 
 ## What this skill additionally relies on
 
 - `iac.cluster_version_path` / `cluster_version_key` and `iac.addons_path` / `addon_keys` — exactly where to make the version bump edits in Steps 3 and 6. If these are missing or you're not confident they're still accurate, stop and confirm with the user rather than guessing at a file path for an edit that opens a real PR.
 - `compute.model` — which branch of `references/node-upgrade.md` applies in Step 5.
+- `report_path` — where to find the prep report in Step 0. If it's absent, fall back to the default path rather than treating the report as missing.
 - `backup.*` — the AWS Backup parameters used in Step 2 (see `references/backup.md`). On the first run for a cluster these will be `null`; confirm each with the user, then write the confirmed values back here so later runs don't re-ask. If the user changes their mind about vault, role, or retention on a later run, update the file — don't silently keep stale values.
 
 If the file is missing entirely, that means `eks-upgrade-prep` hasn't been run for this cluster yet — don't reconstruct it from scratch here. Tell the user to run prep first; it's the one that's supposed to interview them and write this file.
