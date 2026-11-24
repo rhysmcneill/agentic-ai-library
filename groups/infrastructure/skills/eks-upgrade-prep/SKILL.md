@@ -9,7 +9,7 @@ metadata:
 
 This is the investigation phase of an EKS cluster upgrade: find out, before anyone touches a version number, whether the cluster is actually ready to move to the next Kubernetes version, and exactly what would break if it did. The value of this skill is catching the thing nobody remembered to check — the one that's always a human guessing which release notes matter — not running a few `kubectl` one-liners that could already be scripted.
 
-**This skill is strictly read-only.** Query the cluster, AWS APIs, and the internet. Never run `kubectl apply/delete/drain/cordon`, never run `terraform/terramate/tofu apply`, never edit IaC files, never open a PR, never create tracking tickets. If any of that feels useful, say so in the report and stop there — that's the execution skill's job, not this one.
+**This skill is strictly read-only.** Query the cluster, AWS APIs, and the internet. Never run `kubectl apply/delete/drain/cordon`, never run any IaC apply/deploy command (`terraform apply`, `tofu apply`, `terramate run`, `terragrunt apply`, `cdk deploy`, etc. — whichever this cluster actually uses), never edit IaC files, never open a PR, never create tracking tickets. If any of that feels useful, say so in the report and stop there — that's the execution skill's job, not this one.
 
 ## Step 0: always confirm context with the user before touching anything
 
@@ -56,6 +56,8 @@ Work through these in order; each one feeds the next, so don't skip ahead. Full 
 Write a single local markdown file (don't try to push it to Confluence or anywhere else — that's for the human to do once they've reviewed it). Use the structure in `references/report-template.md`, which mirrors the team's existing upgrade runbook format so it can be pasted straight into their usual doc space. Default the path to `./eks-upgrade/<cluster-name>-<current>-to-<target>-prep.md` in the current repo unless the user asks for somewhere else.
 
 Lead the report with a clear **go / no-go / go-with-conditions** recommendation and the list of anything Critical or High that needs resolving first — don't bury the verdict under the raw findings. Everything below that is the evidence for how you got there.
+
+Once it's written, record its path in `report_path` in `.eks-upgrade/<cluster-name>.yaml` (see `references/cluster-config.md`) — this is how `eks-upgrade-execute` finds the report later, including when the user chose a non-default path. Don't skip this just because the default path is predictable; a later run shouldn't have to guess.
 
 ## When you're done
 

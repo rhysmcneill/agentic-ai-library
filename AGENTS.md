@@ -40,7 +40,11 @@ agentic-ai-library/
 │   │   └── skills/
 │   │       ├── commit/           # Conventional Commits skill
 │   │       ├── create-pr/        # Create PRs for infra repos
-│   │       └── repo-structure-review/ # Audit and improve repo layout
+│   │       ├── eks-upgrade-prep/    # Read-only EKS upgrade readiness audit, go/no-go report
+│   │       ├── eks-upgrade-execute/ # Executes a prepared EKS upgrade through IaC/CI
+│   │       ├── repo-structure-review/ # Audit and improve repo layout
+│   │       ├── terraform-expert/ # Terraform/IaC best-practice rules
+│   │       └── terramate-expert/ # Terramate CLI, Cloud, Catalyst rules
 │   ├── open-source-contrib/      # Group domain (Open-source contributions)
 │   │   ├── AGENTS.md             # open-source-* rules
 │   │   └── skills/
