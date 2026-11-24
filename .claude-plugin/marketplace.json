@@ -1,0 +1,17 @@
+{
+  "name": "agentic-ai-library",
+  "description": "Public Claude Code plugins from the agentic-ai-library skills collection.",
+  "owner": {
+    "name": "rhysmcneill",
+    "url": "https://github.com/rhysmcneill"
+  },
+  "plugins": [
+    {
+      "name": "eks-upgrade-prep",
+      "source": "./groups/infrastructure/skills/eks-upgrade-prep",
+      "description": "Read-only readiness audit before an Amazon EKS cluster version upgrade — deprecated APIs, PDB/drain blockers, EKS Upgrade Insights, and addon/controller compatibility research, with a severity-rated go/no-go report.",
+      "category": "infrastructure",
+      "tags": ["eks", "kubernetes", "aws", "terraform", "terramate"]
+    }
+  ]
+}

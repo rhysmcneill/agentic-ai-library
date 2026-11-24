@@ -165,6 +165,8 @@ To intentionally override a rule from a higher-precedence layer, use the overrid
 
 Do not add auxiliary files inside skill directories such as `README.md`, `CHANGELOG.md`, `INSTALLATION_GUIDE.md`, or `QUICK_REFERENCE.md`. The `SKILL.md` is the single entry point.
 
+**Exception:** a skill also submitted to Anthropic's public plugin directory needs `.claude-plugin/plugin.json`, a `README.md` (≥40 words, directory-facing copy — not a restatement of `SKILL.md`'s instructions), and a `LICENSE` file directly in its directory, per the [directory's pre-submission checklist](https://claude.com/docs/plugins/pre-submission-checklist). Only add these when actually submitting that skill as a standalone plugin.
+
 ### Repository map
 
 When adding, moving, or removing files or directories, update the **Repository Map** in the root `AGENTS.md` to reflect the current structure.
