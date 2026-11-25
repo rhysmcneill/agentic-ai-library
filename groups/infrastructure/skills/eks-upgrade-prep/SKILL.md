@@ -2,7 +2,7 @@
 name: eks-upgrade-prep
 description: Runs a thorough, read-only readiness audit before an Amazon EKS cluster version upgrade — deprecated API usage, PDB/drain blockers, cluster health via EKS Upgrade Insights, and compatibility research for every addon and in-cluster controller (ALB controller, Karpenter/cluster-autoscaler, cert-manager, ingress controllers, admission webhooks, CSI drivers, etc.) against the target Kubernetes version. Produces a severity-rated findings report and a go/no-go recommendation. Starts every run by asking the user to confirm cluster identity, IaC tool, stack file locations, compute model, and target version first — never assumes or infers these. Use whenever the user is planning, preparing, or scoping an EKS Kubernetes version upgrade, asking "is it safe to upgrade," or invoking /eks-upgrade-prep directly. Investigates and reports only — never bumps versions, applies IaC, or merges anything; that's a separate execution step.
 metadata:
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 # EKS Upgrade Prep
@@ -24,7 +24,7 @@ Ask for:
 5. **Target Kubernetes version** — confirm it's the next minor (N → N+1), not a multi-minor jump; if it is a jump, say so and flag that it changes the risk profile before going further.
 6. **Report location** — confirm the default (`.eks-upgrade/<aws_account_alias>/<region>/<cluster-name>/<current>-to-<target>/upgrade-prep.md` in the current repo) or ask where else they'd like it.
 
-If `.eks-upgrade/<cluster-name>.yaml` already exists, read it and use it to pre-fill your questions rather than asking from scratch — show the user what's on file and have them confirm or correct it in one pass ("here's what I have for payments-prod, still accurate?"), rather than silently trusting a file that might be stale. Either way, write/update `.eks-upgrade/<cluster-name>.yaml` per the schema in `references/cluster-config.md` once confirmed, so next time this is a quick confirm instead of a full interview.
+If `.eks-upgrade/<aws_account_alias>/<region>/<cluster-name>/config.yaml` already exists, read it and use it to pre-fill your questions rather than asking from scratch — show the user what's on file and have them confirm or correct it in one pass ("here's what I have for payments-prod, still accurate?"), rather than silently trusting a file that might be stale. Either way, write/update `.eks-upgrade/<aws_account_alias>/<region>/<cluster-name>/config.yaml` per the schema in `references/cluster-config.md` once confirmed, so next time this is a quick confirm instead of a full interview.
 
 Only move on to the audit once the user has confirmed this context. This file is the only thing the skill persists between runs — everything else is read fresh each time.
 
@@ -57,7 +57,7 @@ Write a single local markdown file (don't try to push it to Confluence or anywhe
 
 Lead the report with a clear **go / no-go / go-with-conditions** recommendation and the list of anything Critical or High that needs resolving first — don't bury the verdict under the raw findings. Everything below that is the evidence for how you got there.
 
-Once it's written, record its path in `report_path` in `.eks-upgrade/<cluster-name>.yaml` (see `references/cluster-config.md`) — this is how `eks-upgrade-execute` finds the report later, including when the user chose a non-default path. Don't skip this just because the default path is predictable; a later run shouldn't have to guess.
+Once it's written, record its path in `report_path` in `.eks-upgrade/<aws_account_alias>/<region>/<cluster-name>/config.yaml` (see `references/cluster-config.md`) — this is how `eks-upgrade-execute` finds the report later, including when the user chose a non-default path. Don't skip this just because the default path is predictable; a later run shouldn't have to guess.
 
 ## When you're done
 

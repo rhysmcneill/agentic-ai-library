@@ -1,6 +1,6 @@
 # Cluster config schema
 
-Stored at `.eks-upgrade/<cluster-name>.yaml` in the repo that holds the cluster's IaC. One file per cluster. This is the only state the prep skill persists between runs — everything else is re-derived fresh each time so it can never go stale in a way that matters.
+Stored at `.eks-upgrade/<aws_account_alias>/<region>/<cluster-name>/config.yaml` in the repo that holds the cluster's IaC. One file per cluster. This is the only state the prep skill persists between runs — everything else is re-derived fresh each time so it can never go stale in a way that matters.
 
 ```yaml
 cluster_name: payments-prod
@@ -27,7 +27,7 @@ compute:
 # If set, the prep skill will check its upgrade history as a cross-check (step 8).
 reference_environment:
   cluster_name: payments-staging
-  config_path: .eks-upgrade/payments-staging.yaml
+  config_path: .eks-upgrade/example-corp-prod/eu-west-1/payments-staging/config.yaml
 
 # Written after the report is produced (see "Write the report" below) — this is how
 # eks-upgrade-execute finds it later, including when the path isn't the default one.

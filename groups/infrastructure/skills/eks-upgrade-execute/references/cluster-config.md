@@ -1,6 +1,6 @@
 # Cluster config schema
 
-This is the exact same file and schema `eks-upgrade-prep` uses — `.eks-upgrade/<cluster-name>.yaml` in the repo that holds the cluster's IaC. It's duplicated here (rather than referenced across skill directories) so this skill works correctly even if installed on its own, without `eks-upgrade-prep` present.
+This is the exact same file and schema `eks-upgrade-prep` uses — `.eks-upgrade/<aws_account_alias>/<region>/<cluster-name>/config.yaml` in the repo that holds the cluster's IaC. It's duplicated here (rather than referenced across skill directories) so this skill works correctly even if installed on its own, without `eks-upgrade-prep` present.
 
 ```yaml
 cluster_name: payments-prod
@@ -25,7 +25,7 @@ compute:
 
 reference_environment:
   cluster_name: payments-staging
-  config_path: .eks-upgrade/payments-staging.yaml
+  config_path: .eks-upgrade/example-corp-prod/eu-west-1/payments-staging/config.yaml
 
 # Written by eks-upgrade-prep after producing the report. Absent entirely on configs written
 # before this field existed — that's a "fall back to the default path" case, not a missing report.

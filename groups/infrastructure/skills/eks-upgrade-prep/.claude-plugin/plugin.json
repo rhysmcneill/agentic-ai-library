@@ -1,7 +1,7 @@
 {
   "name": "eks-upgrade-prep",
   "displayName": "EKS Upgrade Prep",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Read-only readiness audit before an Amazon EKS cluster version upgrade: deprecated API usage, PDB/drain blockers, EKS Upgrade Insights, and compatibility research for every addon and in-cluster controller against the target Kubernetes version. Produces a severity-rated, go/no-go findings report.",
   "author": {
     "name": "rhysmcneill",
