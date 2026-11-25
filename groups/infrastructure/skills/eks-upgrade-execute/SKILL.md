@@ -2,7 +2,7 @@
 name: eks-upgrade-execute
 description: Executes an already-prepared Amazon EKS cluster version upgrade through IaC and CI/CD, with a human approving every PR merge and every node-disruptive step. Takes a fresh backup (Velero/AWS Backup), bumps the EKS control-plane version via IaC and opens a PR (flagging beforehand whether that merge also triggers node replacement for a coupled managed node group), handles Karpenter/independent-node-group/Fargate node upgrades with their own trigger and go-ahead, runs automated health gates with predefined abort thresholds, then bumps addon versions via a second PR. Requires a go/no-go report from eks-upgrade-prep first; refuses to proceed without one or if it says no-go. Use whenever the user wants to carry out, run, kick off, or execute an EKS Kubernetes version upgrade (as opposed to just preparing/auditing for one). Never merges a PR, never skips a checkpoint, never attempts a control-plane downgrade (not supported by EKS) — only forward fixes.
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # EKS Upgrade Execute
