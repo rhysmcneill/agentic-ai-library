@@ -2,7 +2,7 @@
 name: eks-upgrade-prep
 description: Runs a thorough, read-only readiness audit before an Amazon EKS cluster version upgrade — deprecated API usage, PDB/drain blockers, cluster health via EKS Upgrade Insights, and compatibility research for every addon and in-cluster controller (ALB controller, Karpenter/cluster-autoscaler, cert-manager, ingress controllers, admission webhooks, CSI drivers, etc.) against the target Kubernetes version. Produces a severity-rated findings report and a go/no-go recommendation. Starts every run by asking the user to confirm cluster identity, IaC tool, stack file locations, compute model, and target version first — never assumes or infers these. Use whenever the user is planning, preparing, or scoping an EKS Kubernetes version upgrade, asking "is it safe to upgrade," or invoking /eks-upgrade-prep directly. Investigates and reports only — never bumps versions, applies IaC, or merges anything; that's a separate execution step.
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # EKS Upgrade Prep
