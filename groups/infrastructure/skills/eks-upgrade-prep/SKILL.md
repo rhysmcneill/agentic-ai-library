@@ -22,7 +22,7 @@ Ask for:
 3. **Where the version fields live** — the repo and exact file path(s) declaring the EKS cluster version and the addon versions. If the user doesn't know offhand, offer to go find it yourself (grep the repo they point you to) and show them what you found before proceeding, rather than assuming a path.
 4. **Compute model** — managed node groups, Karpenter, Fargate, or mixed.
 5. **Target Kubernetes version** — confirm it's the next minor (N → N+1), not a multi-minor jump; if it is a jump, say so and flag that it changes the risk profile before going further.
-6. **Report location** — confirm the default (`./eks-upgrade/<cluster-name>-<current>-to-<target>-prep.md` in the current repo) or ask where else they'd like it.
+6. **Report location** — confirm the default (`.eks-upgrade/<aws_account_alias>/<region>/<cluster-name>/<current>-to-<target>/upgrade-prep.md` in the current repo) or ask where else they'd like it.
 
 If `.eks-upgrade/<cluster-name>.yaml` already exists, read it and use it to pre-fill your questions rather than asking from scratch — show the user what's on file and have them confirm or correct it in one pass ("here's what I have for payments-prod, still accurate?"), rather than silently trusting a file that might be stale. Either way, write/update `.eks-upgrade/<cluster-name>.yaml` per the schema in `references/cluster-config.md` once confirmed, so next time this is a quick confirm instead of a full interview.
 
@@ -53,7 +53,7 @@ Work through these in order; each one feeds the next, so don't skip ahead. Full 
 
 ## Write the report
 
-Write a single local markdown file (don't try to push it to Confluence or anywhere else — that's for the human to do once they've reviewed it). Use the structure in `references/report-template.md`, which mirrors the team's existing upgrade runbook format so it can be pasted straight into their usual doc space. Default the path to `./eks-upgrade/<cluster-name>-<current>-to-<target>-prep.md` in the current repo unless the user asks for somewhere else.
+Write a single local markdown file (don't try to push it to Confluence or anywhere else — that's for the human to do once they've reviewed it). Use the structure in `references/report-template.md`, which mirrors the team's existing upgrade runbook format so it can be pasted straight into their usual doc space. Default the path to `.eks-upgrade/<aws_account_alias>/<region>/<cluster-name>/<current>-to-<target>/upgrade-prep.md` in the current repo unless the user asks for somewhere else — everything this skill (and `eks-upgrade-execute`) writes lives under the single `.eks-upgrade/` directory, never a second `eks-upgrade/` without the dot.
 
 Lead the report with a clear **go / no-go / go-with-conditions** recommendation and the list of anything Critical or High that needs resolving first — don't bury the verdict under the raw findings. Everything below that is the evidence for how you got there.
 

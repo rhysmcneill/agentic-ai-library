@@ -14,7 +14,7 @@ This is the half of an EKS upgrade that actually touches the cluster, after `eks
 ## Step 0: Load context and refuse to proceed without a go
 
 1. Read `.eks-upgrade/<cluster-name>.yaml` (same file `eks-upgrade-prep` writes — see `references/cluster-config.md` for the schema). If it doesn't exist, tell the user to run `eks-upgrade-prep` first and stop here; don't try to reconstruct this from scratch.
-2. Find that cluster's prep report: check `report_path` in the config first (recent prep runs write this), and fall back to `./eks-upgrade/<cluster-name>-<current>-to-<target>-prep.md` only if that field is absent — which means this cluster's prep report predates that field, not that one doesn't exist. If neither turns up a real report, don't guess further; tell the user and ask them to point you at it or re-run prep. Read it.
+2. Find that cluster's prep report: check `report_path` in the config first (recent prep runs write this), and fall back to `.eks-upgrade/<aws_account_alias>/<region>/<cluster-name>/<current>-to-<target>/upgrade-prep.md` only if that field is absent — which means this cluster's prep report predates that field, not that one doesn't exist. If neither turns up a real report, don't guess further; tell the user and ask them to point you at it or re-run prep. Read it.
 3. Check the verdict:
    - **NO-GO** — stop immediately and say why. Don't offer to proceed anyway.
    - **GO WITH CONDITIONS** — list the conditions back to the user and get explicit confirmation each one is actually resolved before continuing. Don't take their word for "yes it's fine" without naming what was supposedly fixed.
