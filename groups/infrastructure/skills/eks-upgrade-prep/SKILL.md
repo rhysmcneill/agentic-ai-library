@@ -2,7 +2,7 @@
 name: eks-upgrade-prep
 description: Runs a thorough, read-only readiness audit before an Amazon EKS cluster version upgrade — deprecated API usage, PDB/drain blockers, cluster health via EKS Upgrade Insights, and compatibility research for every addon and in-cluster controller (ALB controller, Karpenter/cluster-autoscaler, cert-manager, ingress controllers, admission webhooks, CSI drivers, etc.) against the target Kubernetes version. Produces a severity-rated findings report and a go/no-go recommendation. Starts every run by asking the user to confirm cluster identity, IaC tool, stack file locations, compute model, and target version first — never assumes or infers these. Use whenever the user is planning, preparing, or scoping an EKS Kubernetes version upgrade, asking "is it safe to upgrade," or invoking /eks-upgrade-prep directly. Investigates and reports only — never bumps versions, applies IaC, or merges anything; that's a separate execution step.
 metadata:
-  version: "1.0.2"
+  version: "1.1.0"
 ---
 
 # EKS Upgrade Prep
@@ -49,7 +49,9 @@ Work through these in order; each one feeds the next, so don't skip ahead. Full 
 
 7. **Rate every finding.** Critical (blocks the upgrade outright, no safe path forward without remediation first) → High (will break post-upgrade, but a known fix exists) → Medium (deprecated or soon-removed, not an immediate break) → Low (informational/cosmetic, e.g. a controller is a few patches behind but nothing version-gated). Don't collapse this into a single "looks fine" — the report's entire value is letting a human triage by severity instead of re-deriving it.
 
-8. **Cross-check against a lower environment, if one exists.** If dev/staging already sits on the target version, pull its history — did it hit any of the issues found here? That's free validation; use it.
+8. **Offer ticket tracking for Critical/High findings.** This is optional and only ever happens with the user's explicit go-ahead — see `references/ticket-tracking.md` for the full flow (detecting a ticketing tool, scoping tickets to Critical/High only, asking where they should go, and recording the result). Whatever happens here (tickets created, or none), make sure every Critical/High row in the report's findings tables ends up with its `Tracking` column filled in — a ticket link, or `—` if none was created.
+
+9. **Cross-check against a lower environment, if one exists.** If dev/staging already sits on the target version, pull its history — did it hit any of the issues found here? That's free validation; use it.
 
 ## Write the report
 

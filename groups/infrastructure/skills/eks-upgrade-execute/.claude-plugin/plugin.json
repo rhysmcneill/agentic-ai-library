@@ -1,7 +1,7 @@
 {
   "name": "eks-upgrade-execute",
   "displayName": "EKS Upgrade Execute",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Executes an already-prepared Amazon EKS cluster version upgrade through IaC and CI/CD: fresh backup, control-plane version bump PR, compute-type-aware node upgrade, automated health gates, and an addon version bump PR. A human approves every PR merge and every node-disruptive step. Requires a go/no-go report from eks-upgrade-prep first.",
   "author": {
     "name": "rhysmcneill",

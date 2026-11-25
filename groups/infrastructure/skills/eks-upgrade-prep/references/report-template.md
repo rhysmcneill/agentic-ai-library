@@ -26,14 +26,14 @@ Mirrors the team's existing manual upgrade runbook format so it can be pasted st
 
 ### Deprecated / removed APIs
 
-| # | Deprecated API | Suggested remediation | Severity |
-|---|---|---|---|
-| | | | |
+| # | Deprecated API | Suggested remediation | Severity | Tracking |
+|---|---|---|---|---|
+| | | | | |
 
 ### Service-level blockers
 
-| # | Issue | Mitigation | Recommendation | Severity | Source |
-|---|---|---|---|---|---|
+| # | Issue | Mitigation | Recommendation | Severity | Source | Tracking |
+|---|---|---|---|---|---|---|
 
 ### PDB / drain-blocker audit
 
@@ -45,8 +45,8 @@ Mirrors the team's existing manual upgrade runbook format so it can be pasted st
 
 ## Addon & controller compatibility
 
-| Component | Installed version | Target-compatible? | Recommended version | Source | Severity |
-|---|---|---|---|---|---|
+| Component | Installed version | Target-compatible? | Recommended version | Source | Severity | Tracking |
+|---|---|---|---|---|---|---|
 
 ## Target versions
 

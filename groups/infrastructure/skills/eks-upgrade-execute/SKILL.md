@@ -2,7 +2,7 @@
 name: eks-upgrade-execute
 description: Executes an already-prepared Amazon EKS cluster version upgrade through IaC and CI/CD, with a human approving every PR merge and every node-disruptive step. Takes a fresh backup (Velero/AWS Backup), bumps the EKS control-plane version via IaC and opens a PR (flagging beforehand whether that merge also triggers node replacement for a coupled managed node group), handles Karpenter/independent-node-group/Fargate node upgrades with their own trigger and go-ahead, runs automated health gates with predefined abort thresholds, then bumps addon versions via a second PR. Requires a go/no-go report from eks-upgrade-prep first; refuses to proceed without one or if it says no-go. Use whenever the user wants to carry out, run, kick off, or execute an EKS Kubernetes version upgrade (as opposed to just preparing/auditing for one). Never merges a PR, never skips a checkpoint, never attempts a control-plane downgrade (not supported by EKS) — only forward fixes.
 metadata:
-  version: "1.0.2"
+  version: "1.1.0"
 ---
 
 # EKS Upgrade Execute
@@ -19,7 +19,8 @@ This is the half of an EKS upgrade that actually touches the cluster, after `eks
    - **NO-GO** — stop immediately and say why. Don't offer to proceed anyway.
    - **GO WITH CONDITIONS** — list the conditions back to the user and get explicit confirmation each one is actually resolved before continuing. Don't take their word for "yes it's fine" without naming what was supposedly fixed.
    - **GO** — continue.
-4. If the report is more than a few days old, say so and ask whether to re-run the relevant prep checks (cluster state drifts — an addon could have changed, a new workload could have appeared with no PDB) rather than silently trusting a stale report.
+4. For every Critical/High row in the report's findings tables that has a ticket link in its `Tracking` column: check that ticket's actual status before treating it as resolved. If a ticketing tool is usable in this session, query the ticket directly and use its real status — don't infer "must be done" just because the user is now running execute. If no ticketing tool is available (or a row's `Tracking` cell is `—`), fall back to the same verbal confirmation as Step 0.3: ask the user to confirm that specific item is resolved, naming it, not a blanket "yes." Any ticket that's still open is treated the same as an unresolved condition — stop and surface it rather than proceeding past it.
+5. If the report is more than a few days old, say so and ask whether to re-run the relevant prep checks (cluster state drifts — an addon could have changed, a new workload could have appeared with no PDB) rather than silently trusting a stale report.
 
 ## Step 1: Fresh final check
 
@@ -70,5 +71,5 @@ After the addon PR is merged: confirm every addon reports the target version and
 ## Step 8: Close out
 
 1. Append an "Execution Log" section to the same report file `eks-upgrade-prep` wrote — what actually happened, timings, anything that deviated from plan, any threshold that got close to breaching even if it didn't. This is as valuable as the prep findings for whoever runs the next upgrade.
-2. Remind the user which tracking tickets raised in the prep report (if any) should now be closed — don't close or edit them yourself, just list them.
+2. Remind the user which tracking tickets raised in the prep report (if any) should now be closed — pull them from the `Tracking` column of the findings tables, not a separate memory of what was discussed. Don't close or edit them yourself, just list them.
 3. Summarize the outcome in a couple of sentences and stop.
