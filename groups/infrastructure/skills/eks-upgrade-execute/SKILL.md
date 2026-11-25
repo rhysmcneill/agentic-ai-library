@@ -2,7 +2,7 @@
 name: eks-upgrade-execute
 description: Executes an already-prepared Amazon EKS cluster version upgrade through IaC and CI/CD, with a human approving every PR merge and every node-disruptive step. Takes a fresh backup (Velero/AWS Backup), bumps the EKS control-plane version via IaC and opens a PR (flagging beforehand whether that merge also triggers node replacement for a coupled managed node group), handles Karpenter/independent-node-group/Fargate node upgrades with their own trigger and go-ahead, runs automated health gates with predefined abort thresholds, then bumps addon versions via a second PR. Requires a go/no-go report from eks-upgrade-prep first; refuses to proceed without one or if it says no-go. Use whenever the user wants to carry out, run, kick off, or execute an EKS Kubernetes version upgrade (as opposed to just preparing/auditing for one). Never merges a PR, never skips a checkpoint, never attempts a control-plane downgrade (not supported by EKS) — only forward fixes.
 metadata:
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 # EKS Upgrade Execute
@@ -13,7 +13,7 @@ This is the half of an EKS upgrade that actually touches the cluster, after `eks
 
 ## Step 0: Load context and refuse to proceed without a go
 
-1. Read `.eks-upgrade/<cluster-name>.yaml` (same file `eks-upgrade-prep` writes — see `references/cluster-config.md` for the schema). If it doesn't exist, tell the user to run `eks-upgrade-prep` first and stop here; don't try to reconstruct this from scratch.
+1. Read `.eks-upgrade/<aws_account_alias>/<region>/<cluster-name>/config.yaml` (same file `eks-upgrade-prep` writes — see `references/cluster-config.md` for the schema). If it doesn't exist, tell the user to run `eks-upgrade-prep` first and stop here; don't try to reconstruct this from scratch.
 2. Find that cluster's prep report: check `report_path` in the config first (recent prep runs write this), and fall back to `.eks-upgrade/<aws_account_alias>/<region>/<cluster-name>/<current>-to-<target>/upgrade-prep.md` only if that field is absent — which means this cluster's prep report predates that field, not that one doesn't exist. If neither turns up a real report, don't guess further; tell the user and ask them to point you at it or re-run prep. Read it.
 3. Check the verdict:
    - **NO-GO** — stop immediately and say why. Don't offer to proceed anyway.
