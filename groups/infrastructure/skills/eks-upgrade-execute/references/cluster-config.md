@@ -29,7 +29,7 @@ reference_environment:
 
 # Written by eks-upgrade-prep after producing the report. Absent entirely on configs written
 # before this field existed — that's a "fall back to the default path" case, not a missing report.
-report_path: ./eks-upgrade/payments-prod-1.34-to-1.35-prep.md
+report_path: .eks-upgrade/example-corp-prod/eu-west-1/payments-prod/1.34-to-1.35/upgrade-prep.md
 
 # Added and maintained by eks-upgrade-execute itself — eks-upgrade-prep never writes this block,
 # so expect it to be missing the first time this skill runs for a given cluster.

@@ -31,7 +31,7 @@ reference_environment:
 
 # Written after the report is produced (see "Write the report" below) — this is how
 # eks-upgrade-execute finds it later, including when the path isn't the default one.
-report_path: ./eks-upgrade/payments-prod-1.34-to-1.35-prep.md
+report_path: .eks-upgrade/example-corp-prod/eu-west-1/payments-prod/1.34-to-1.35/upgrade-prep.md
 ```
 
 ## Notes
