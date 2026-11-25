@@ -24,7 +24,7 @@ compute:
   details: "Karpenter for general workloads, one managed node group for system pods"
 
 # Optional: a lower environment that typically validates a version before this cluster does.
-# If set, the prep skill will check its upgrade history as a cross-check (step 8).
+# If set, the prep skill will check its upgrade history as a cross-check (step 9).
 reference_environment:
   cluster_name: payments-staging
   config_path: .eks-upgrade/example-corp-prod/eu-west-1/payments-staging/config.yaml
